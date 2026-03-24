@@ -53,7 +53,28 @@ public class SillyGuitar {
 
     // Self explanatory: screen where the guitar can be played.
     public static class GuitarScreen extends JPanel{
+        ScreenManager screenManager;
+        PopupManager popupManager;
 
+        GuitarScreen() {
+            popupManager = new PopupManager();
+
+            JButton continueBtn = new JButton("Continue");
+            // Listeners learnt in lecture
+            continueBtn.addActionListener(e -> JOptionPane.showMessageDialog(null, popupManager.triggerPopup()));
+            add(continueBtn);
+        }
+
+    }
+
+    public static class PopupManager {
+        private String[] funFacts =  new String[] {"hello", "hi", "123"};
+        String currentPopup;
+
+        String triggerPopup()
+        {
+            return funFacts[(int) Math.random() * funFacts.length];
+        }
     }
 
     public static void main(String[] args) {
