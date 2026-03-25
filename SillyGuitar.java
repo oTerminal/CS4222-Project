@@ -15,7 +15,7 @@ public class SillyGuitar {
     public static class ScreenManager extends JPanel{
         CardLayout cardLayout;
         SplashScreen splashScreen;
-        GuitarScreen guitarScreen;
+        GuitarScreen guitarScreen; //sigma
 
         ScreenManager() {
             cardLayout = new CardLayout();
