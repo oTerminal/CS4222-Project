@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
 
+//hi
+
 public class SillyGuitar {
 
     // These are simply the screens of our game, basically what screen in our sketch we will be in.
