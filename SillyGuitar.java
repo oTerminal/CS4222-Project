@@ -1,11 +1,11 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Random;
 
 public class SillyGuitar {
 
@@ -65,12 +65,16 @@ public class SillyGuitar {
     public static class GuitarScreen extends JPanel {
         PopupManager popupManager;
         StringPanel stringPanel;
+        PiSequence piSequence;
 
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
+            piSequence = new PiSequence();
 
             add(stringPanel);
+            add(piSequence);
+            add(piSequence.label);
 
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
@@ -214,8 +218,36 @@ public class SillyGuitar {
 
     }
 
-    public static class PiSequence {
+    public static class PiSequence extends JTextField{
+        JLabel label;
+        
+        PiSequence(){
+            label = new JLabel("100%");
+            setText("Enter PI Digits...");
+            setPreferredSize(new Dimension(250, 40));
+            addActionListener(e -> 
+            {String input = getText(); 
+            label.setText(Volume(input));
+            setText("Enter PI Digits");});
+        }
 
+        
+        
+        String Volume(String input){
+            String pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679";
+    
+    int inputLength = input.length();
+    
+    String matcher = pi.substring(0, inputLength);
+    
+    
+    if(matcher.equals(input)){
+        return (Integer.toString(pi.length() - inputLength) + "%");
+    }
+    
+    return "100%";
+        }
+     
     }
 
     public static class PopupManager {
@@ -245,7 +277,7 @@ public class SillyGuitar {
         ScreenManager screenManager = new ScreenManager();
 
         frame.add(screenManager);
-        frame.setSize(800, 600);
+        frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
