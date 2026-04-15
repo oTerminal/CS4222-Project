@@ -213,11 +213,13 @@ public class SillyGuitar {
         } // AI - End
 
     }
-
-    public static class Cursor {
-
+    
+    
+    public static class customCursor {
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("C:\\Users\\suhas\\Desktop\\guitar-pick-silhouette.png").getImage(), new Point (0, 0), "Custom cursor");
     }
-
+    
+    //class that takes input from the user and displays the changed volume
     public static class PiSequence extends JTextField{
         JLabel label;
         
@@ -227,25 +229,20 @@ public class SillyGuitar {
             setPreferredSize(new Dimension(250, 40));
             addActionListener(e -> 
             {String input = getText(); 
-            label.setText(Volume(input));
-            setText("Enter PI Digits");});
+            label.setText(Volume(input) + "%");
+            setText("Enter PI Digits...");});
         }
 
-        
-        
-        String Volume(String input){
-            String pi = "3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679";
+        int Volume(String input){
+            String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
+            int inputLength = Math.min(input.length(), pi.length());
+            String truePi = pi.substring(0, inputLength);
     
-    int inputLength = input.length();
-    
-    String matcher = pi.substring(0, inputLength);
-    
-    
-    if(matcher.equals(input)){
-        return (Integer.toString(pi.length() - inputLength) + "%");
-    }
-    
-    return "100%";
+            if(truePi.equals(input)){
+                return (pi.length() - inputLength);
+            }
+            
+            return 100;
         }
      
     }
@@ -275,7 +272,9 @@ public class SillyGuitar {
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-
+        customCursor cur = new customCursor();
+        
+        frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
