@@ -74,33 +74,56 @@ public class SillyGuitar {
 
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
-            continueBtn.addActionListener(e -> JOptionPane.showMessageDialog(null, popupManager.triggerPopup()));
+            continueBtn.addActionListener(e -> popupManager.triggerRandomPopup());
             add(continueBtn);
-
-            
         }
     }
 
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
+        PopupManager popupManager;
 
         //AI - Start
-        private final int[] yPositions = {50, 100, 150, 200, 250, 300};
-        private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
+        // Horizontal fret lines (x‑positions)
+        private final int[] frets = {150, 250, 350, 450, 550, 650};
+        private final int[] yPositions = {50, 100, 150, 200, 250, 300, 350};
+        private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 432, 440};
 
         public StringPanel() {
+            popupManager = new PopupManager();
             soundEngine = new SoundEngine();
 
             setPreferredSize(new Dimension(800, 400));
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
+                    // Detect which string was clicked
                     for (int i = 0; i < yPositions.length; i++) {
-                        final int idx = i;   // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS LINE
+                        final int idx = i; // required for thread/lambda
                         if (Math.abs(e.getY() - yPositions[i]) < 10) {
+                            // Detect fret clicked (if any)
+                            int fretIndex = -1;
+                            for (int f = 0; f < frets.length; f++) {
+                                if (e.getX() < frets[f]) {
+                                    fretIndex = f; // the first fret to the right is the one you pressed
+                                    break;
+                                }
+                            }
+
+                            if (e.getX() > frets[frets.length - 1]) {
+                                fretIndex = frets.length; // extra frets beyond the last one (rare, but fine)
+                            }
+
+                            final int fIdx = fretIndex;
                             new Thread(() -> {
                                 try {
-                                    soundEngine.playKarplusStrong(frequencies[idx], 1.5);
+                                    double base = frequencies[idx];
+
+                                    // Increase pitch by semitones based on fret
+                                    double noteFreq = (fIdx >= 0)
+                                            ? base * Math.pow(2, fIdx / 12.0)
+                                            : base;
+                                    soundEngine.playKarplusStrong(noteFreq, 1.5);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
@@ -123,9 +146,13 @@ public class SillyGuitar {
             for (int y : yPositions) {
                 g2d.drawLine(50, y, 750, y);
             }
-        }
+            
+            g2d.setColor(Color.GRAY);
+            for (int x : frets) {
+                g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
+            }
 
-        /** Plays a plucked string using the Karplus–Strong algorithm. */
+        }
 
     } //AI - Finish
 
@@ -204,9 +231,11 @@ public class SillyGuitar {
                 "hi"};
         }
 
-        String triggerPopup() {
+        void triggerRandomPopup() {
             int index = random.nextInt(funFacts.length);
-            return funFacts[index];
+
+
+            JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
         }
     
     }
