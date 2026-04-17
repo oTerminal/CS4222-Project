@@ -136,6 +136,75 @@ public class SillyGuitar {
                     }
                 }
             });
+            
+            //keyboard input for playing the guitar using Key Bindings
+            InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = getActionMap();
+            
+            Action xAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[3], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action mAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[1], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action jAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[5], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action rAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[7], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action eAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[2], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action cAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[6], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            Action gAction = new AbstractAction(){
+                @Override
+                public void actionPerformed(ActionEvent e){
+                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[4], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                }
+            };
+            
+            inputMap.put(KeyStroke.getKeyStroke("X"), "xAction");
+            inputMap.put(KeyStroke.getKeyStroke("M"), "mAction");
+            inputMap.put(KeyStroke.getKeyStroke("J"), "jAction");
+            inputMap.put(KeyStroke.getKeyStroke("R"), "rAction");
+            inputMap.put(KeyStroke.getKeyStroke("E"), "eAction");
+            inputMap.put(KeyStroke.getKeyStroke("C"), "cAction");
+            inputMap.put(KeyStroke.getKeyStroke("G"), "gAction");
+            
+            actionMap.put("xAction", xAction);
+            actionMap.put("mAction", mAction);
+            actionMap.put("jAction", jAction);
+            actionMap.put("rAction", rAction);
+            actionMap.put("eAction", eAction);
+            actionMap.put("cAction", cAction);
+            actionMap.put("gAction", gAction);
         }
 
         @Override
@@ -216,7 +285,7 @@ public class SillyGuitar {
     
     
     public static class customCursor {
-        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("C:\\Users\\suhas\\Desktop\\guitar-pick-silhouette.png").getImage(), new Point (0, 0), "Custom cursor");
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(), new Point (0, 0), "Custom cursor");
     }
     
     //class that takes input from the user and displays the changed volume
@@ -230,7 +299,8 @@ public class SillyGuitar {
             addActionListener(e -> 
             {String input = getText(); 
             label.setText(Volume(input) + "%");
-            setText("Enter PI Digits...");});
+            setText("Enter PI Digits...");
+            transferFocus();});
         }
 
         int Volume(String input){
