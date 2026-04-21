@@ -9,7 +9,8 @@ import javax.swing.*;
 
 public class SillyGuitar {
 
-    // These are simply the screens of our game, basically what screen in our sketch we will be in.
+    // These are simply the screens of our game, basically what screen in our sketch
+    // we will be in.
     public static enum GameState {
         TUTORIAL,
         INSTRUMENT;
@@ -18,11 +19,12 @@ public class SillyGuitar {
     public static enum TuningState {
         DEFAULT_WRONG,
         CUSTOM,
-        
+
     }
 
-    // This class will control what screen to change to and what is currently showing.
-    public static class ScreenManager extends JPanel{
+    // This class will control what screen to change to and what is currently
+    // showing.
+    public static class ScreenManager extends JPanel {
         CardLayout cardLayout;
         SplashScreen splashScreen;
         GuitarScreen guitarScreen;
@@ -40,15 +42,14 @@ public class SillyGuitar {
             cardLayout.show(this, GameState.TUTORIAL.name());
         }
 
-        void switchTo(GameState state)
-        {
+        void switchTo(GameState state) {
             cardLayout.show(this, state.name());
         }
 
     }
 
-    // This is the simply the class for the splash screen. 
-    public static class SplashScreen extends JPanel{
+    // This is the simply the class for the splash screen.
+    public static class SplashScreen extends JPanel {
         ScreenManager screenManager;
 
         SplashScreen(ScreenManager screenManager) {
@@ -87,11 +88,11 @@ public class SillyGuitar {
         SoundEngine soundEngine;
         PopupManager popupManager;
 
-        //AI - Start
+        // AI - Start
         // Horizontal fret lines (x‑positions)
-        private final int[] frets = {150, 250, 350, 450, 550, 650};
-        private final int[] yPositions = {50, 100, 150, 200, 250, 300, 350};
-        private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 432, 440};
+        private final int[] frets = { 150, 250, 350, 450, 550, 650 };
+        private final int[] yPositions = { 50, 100, 150, 200, 250, 300, 350 };
+        private final double[] frequencies = { 82.0, 110.0, 147.0, 196.0, 247.0, 330.0, 67.0 };
 
         public StringPanel() {
             popupManager = new PopupManager();
@@ -136,75 +137,117 @@ public class SillyGuitar {
                     }
                 }
             });
-            
-            //keyboard input for playing the guitar using Key Bindings
+
+            // keyboard input for playing the guitar using Key Bindings
             InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap actionMap = getActionMap();
-            
-            Action xAction = new AbstractAction(){
+
+            Action EAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[3], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[0], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action mAction = new AbstractAction(){
+
+            Action BAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[1], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[1], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action jAction = new AbstractAction(){
+
+            Action GAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[5], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[2], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action rAction = new AbstractAction(){
+
+            Action DAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[7], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[3], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action eAction = new AbstractAction(){
+
+            Action AAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[2], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[4], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action cAction = new AbstractAction(){
+
+            Action eAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[6], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[5], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            Action gAction = new AbstractAction(){
+
+            Action ghostAction = new AbstractAction() {
                 @Override
-                public void actionPerformed(ActionEvent e){
-                    new Thread(() -> { try { soundEngine.playKarplusStrong(frequencies[4], 1.5); } catch (Exception ex) { ex.printStackTrace(); } }).start();
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playKarplusStrong(frequencies[6], 1.5);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
                 }
             };
-            
-            inputMap.put(KeyStroke.getKeyStroke("X"), "xAction");
-            inputMap.put(KeyStroke.getKeyStroke("M"), "mAction");
-            inputMap.put(KeyStroke.getKeyStroke("J"), "jAction");
-            inputMap.put(KeyStroke.getKeyStroke("R"), "rAction");
-            inputMap.put(KeyStroke.getKeyStroke("E"), "eAction");
-            inputMap.put(KeyStroke.getKeyStroke("C"), "cAction");
-            inputMap.put(KeyStroke.getKeyStroke("G"), "gAction");
-            
-            actionMap.put("xAction", xAction);
-            actionMap.put("mAction", mAction);
-            actionMap.put("jAction", jAction);
-            actionMap.put("rAction", rAction);
+
+            inputMap.put(KeyStroke.getKeyStroke("1"), "EAction");
+            inputMap.put(KeyStroke.getKeyStroke("2"), "BAction");
+            inputMap.put(KeyStroke.getKeyStroke("3"), "GAction");
+            inputMap.put(KeyStroke.getKeyStroke("4"), "DAction");
+            inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
+            inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
+            inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
+
+            actionMap.put("EAction", EAction);
+            actionMap.put("BAction", BAction);
+            actionMap.put("GAction", GAction);
+            actionMap.put("DAction", DAction);
+            actionMap.put("AAction", AAction);
             actionMap.put("eAction", eAction);
-            actionMap.put("cAction", cAction);
-            actionMap.put("gAction", gAction);
+            actionMap.put("ghostAction", ghostAction);
         }
 
         @Override
@@ -214,12 +257,12 @@ public class SillyGuitar {
             Graphics2D g2d = (Graphics2D) g; // Not AI
 
             g2d.setColor(Color.RED);
-            g2d.setStroke(new BasicStroke(3));  // Not AI
+            g2d.setStroke(new BasicStroke(3)); // Not AI
 
             for (int y : yPositions) {
                 g2d.drawLine(50, y, 750, y);
             }
-            
+
             g2d.setColor(Color.GRAY);
             for (int x : frets) {
                 g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
@@ -227,7 +270,7 @@ public class SillyGuitar {
 
         }
 
-    } //AI - Finish
+    } // AI - Finish
 
     public static class TuningPanel extends JPanel {
 
@@ -239,7 +282,7 @@ public class SillyGuitar {
 
     public static class SoundEngine {
 
-        //AI - Start (But I put this code into this class.)
+        // AI - Start (But I put this code into this class.)
         public void playKarplusStrong(double freq, double durationSeconds) throws LineUnavailableException {
             final float sampleRate = 44100;
             int bufferSize = (int) (sampleRate / freq);
@@ -282,39 +325,40 @@ public class SillyGuitar {
         } // AI - End
 
     }
-    
-    
+
     public static class customCursor {
-        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(), new Point (0, 0), "Custom cursor");
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(),
+                new Point(0, 0), "Custom cursor");
     }
-    
-    //class that takes input from the user and displays the changed volume
-    public static class PiSequence extends JTextField{
+
+    // class that takes input from the user and displays the changed volume
+    public static class PiSequence extends JTextField {
         JLabel label;
-        
-        PiSequence(){
+
+        PiSequence() {
             label = new JLabel("100%");
             setText("Enter PI Digits...");
             setPreferredSize(new Dimension(250, 40));
-            addActionListener(e -> 
-            {String input = getText(); 
-            label.setText(Volume(input) + "%");
-            setText("Enter PI Digits...");
-            transferFocus();});
+            addActionListener(e -> {
+                String input = getText();
+                label.setText(Volume(input) + "%");
+                setText("Enter PI Digits...");
+                transferFocus();
+            });
         }
 
-        int Volume(String input){
+        int Volume(String input) {
             String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
             int inputLength = Math.min(input.length(), pi.length());
             String truePi = pi.substring(0, inputLength);
-    
-            if(truePi.equals(input)){
+
+            if (truePi.equals(input)) {
                 return (pi.length() - inputLength);
             }
-            
+
             return 100;
         }
-     
+
     }
 
     public static class PopupManager {
@@ -324,27 +368,26 @@ public class SillyGuitar {
 
         PopupManager() {
             random = new Random();
-            funFacts =  new String[] {
-                "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
-                "gurt", 
-                "hi"};
+            funFacts = new String[] {
+                    "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
+                    "gurt",
+                    "hi" };
         }
 
         void triggerRandomPopup() {
             int index = random.nextInt(funFacts.length);
 
-
             JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
         }
-    
+
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
         customCursor cur = new customCursor();
-        
-        frame.setCursor(cur.cursor);
+
+        //frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
