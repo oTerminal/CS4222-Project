@@ -67,8 +67,7 @@ public class SillyGuitar {
         PopupManager popupManager;
         StringPanel stringPanel;
         PiSequence piSequence;
-
-
+        
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
@@ -89,12 +88,12 @@ public class SillyGuitar {
         SoundEngine soundEngine;
         PopupManager popupManager;
 
-
         // AI - Start
         // Horizontal fret lines (x‑positions)
         private final int[] frets = { 150, 250, 350, 450, 550, 650 };
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300, 350 };
-        private final double[] frequencies = { 110.0, 146.83, 196.00, 246.94, 329.63, 432, 440 };
+        private final double[] frequencies = { 82.41, 110.00, 146.83, 196.00, 246.94, 329.63, 35};
+        private final double[] gMajorFreq = { 92.50, 116.54, 146.83, 196.00, 246.94, 369.99};
 
         public StringPanel() {
             popupManager = new PopupManager();
@@ -228,6 +227,18 @@ public class SillyGuitar {
                 }
             };
 
+            Action GMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                            soundEngine.playNote(gMajorFreq[0]);
+                            soundEngine.playNote(gMajorFreq[1]);
+                            soundEngine.playNote(gMajorFreq[2]);
+                            soundEngine.playNote(gMajorFreq[3]);
+                            soundEngine.playNote(gMajorFreq[4]);
+                            soundEngine.playNote(gMajorFreq[5]);
+                }
+            };
+
             inputMap.put(KeyStroke.getKeyStroke("1"), "EAction");
             inputMap.put(KeyStroke.getKeyStroke("2"), "BAction");
             inputMap.put(KeyStroke.getKeyStroke("3"), "GAction");
@@ -235,6 +246,8 @@ public class SillyGuitar {
             inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
             inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
             inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
+            inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
+
 
             actionMap.put("EAction", EAction);
             actionMap.put("BAction", BAction);
@@ -243,8 +256,8 @@ public class SillyGuitar {
             actionMap.put("AAction", AAction);
             actionMap.put("eAction", eAction);
             actionMap.put("ghostAction", ghostAction);
+            actionMap.put("GMajorAction", GMajorAction);
         }
-
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -277,6 +290,8 @@ public class SillyGuitar {
     }
 
     public static class SoundEngine {
+
+        PopupManager popupManager = new PopupManager();
 
         private static final float SAMPLE_RATE = 44100f;
         private static final int BUFFER_SIZE = 512;
@@ -335,9 +350,11 @@ public class SillyGuitar {
         /** Public API: pluck a string */
         public void playNote(double frequency) {
             // limit polyphony (like a real guitar)
-            if (strings.size() < 8) {
+            if (strings.size() < 100) {
                 strings.add(new KarplusString(frequency));
             }
+            // popupManager.triggerRandomPopup();
+
         }
 
         /** One Karplus–Strong string */
@@ -379,11 +396,11 @@ public class SillyGuitar {
 
     }
 
-     public static class PiSequence extends JTextField {
+    public static class PiSequence extends JTextField {
         JLabel label;
 
         PiSequence() {
-            label = new JLabel("100%");
+            label = new JLabel("0%");
             setText("Enter PI Digits...");
             setPreferredSize(new Dimension(250, 40));
             addActionListener(e -> {
@@ -400,10 +417,10 @@ public class SillyGuitar {
             String truePi = pi.substring(0, inputLength);
 
             if (truePi.equals(input)) {
-                return (pi.length() - inputLength);
+                return Math.abs(100 - (pi.length() - inputLength));
             }
 
-            return 100;
+            return Math.abs(0);
         }
 
     }
@@ -422,9 +439,10 @@ public class SillyGuitar {
         }
 
         void triggerRandomPopup() {
-            int index = random.nextInt(funFacts.length);
-
-            JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+            if (Math.random() > 0.7) {
+                int index = random.nextInt(funFacts.length);
+                JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+            }
         }
 
     }
