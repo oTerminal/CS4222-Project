@@ -67,7 +67,7 @@ public class SillyGuitar {
         PopupManager popupManager;
         StringPanel stringPanel;
         PiSequence piSequence;
-        
+
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
@@ -92,8 +92,8 @@ public class SillyGuitar {
         // Horizontal fret lines (x‑positions)
         private final int[] frets = { 150, 250, 350, 450, 550, 650 };
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300, 350 };
-        private final double[] frequencies = { 82.41, 110.00, 146.83, 196.00, 246.94, 329.63, 35};
-        private final double[] gMajorFreq = { 92.50, 116.54, 146.83, 196.00, 246.94, 369.99};
+        private final double[] frequencies = { 82.41, 110.00, 146.83, 196.00, 246.94, 329.63, 35 };
+        private final double[] gMajorFreq = { 92.50, 116.54, 146.83, 196.00, 246.94, 369.99 };
 
         public StringPanel() {
             popupManager = new PopupManager();
@@ -230,12 +230,12 @@ public class SillyGuitar {
             Action GMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                            soundEngine.playNote(gMajorFreq[0]);
-                            soundEngine.playNote(gMajorFreq[1]);
-                            soundEngine.playNote(gMajorFreq[2]);
-                            soundEngine.playNote(gMajorFreq[3]);
-                            soundEngine.playNote(gMajorFreq[4]);
-                            soundEngine.playNote(gMajorFreq[5]);
+                    soundEngine.playNote(gMajorFreq[0]);
+                    soundEngine.playNote(gMajorFreq[1]);
+                    soundEngine.playNote(gMajorFreq[2]);
+                    soundEngine.playNote(gMajorFreq[3]);
+                    soundEngine.playNote(gMajorFreq[4]);
+                    soundEngine.playNote(gMajorFreq[5]);
                 }
             };
 
@@ -247,7 +247,6 @@ public class SillyGuitar {
             inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
             inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
             inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
-
 
             actionMap.put("EAction", EAction);
             actionMap.put("BAction", BAction);
