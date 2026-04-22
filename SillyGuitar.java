@@ -1,11 +1,11 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Random;
 
 public class SillyGuitar {
 
@@ -66,12 +66,17 @@ public class SillyGuitar {
     public static class GuitarScreen extends JPanel {
         PopupManager popupManager;
         StringPanel stringPanel;
+        PiSequence piSequence;
+
 
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
+            piSequence = new PiSequence();
 
             add(stringPanel);
+            add(piSequence);
+            add(piSequence.label);
 
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
@@ -83,6 +88,7 @@ public class SillyGuitar {
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
         PopupManager popupManager;
+
 
         // AI - Start
         // Horizontal fret lines (x‑positions)
@@ -127,7 +133,118 @@ public class SillyGuitar {
                     }
                 }
             });
+
+            InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = getActionMap();
+
+            Action EAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[0]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action BAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[1]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action GAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[2]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action DAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[3]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action AAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[4]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action eAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[5]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action ghostAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[6]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            inputMap.put(KeyStroke.getKeyStroke("1"), "EAction");
+            inputMap.put(KeyStroke.getKeyStroke("2"), "BAction");
+            inputMap.put(KeyStroke.getKeyStroke("3"), "GAction");
+            inputMap.put(KeyStroke.getKeyStroke("4"), "DAction");
+            inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
+            inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
+            inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
+
+            actionMap.put("EAction", EAction);
+            actionMap.put("BAction", BAction);
+            actionMap.put("GAction", GAction);
+            actionMap.put("DAction", DAction);
+            actionMap.put("AAction", AAction);
+            actionMap.put("eAction", eAction);
+            actionMap.put("ghostAction", ghostAction);
         }
+
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -262,7 +379,32 @@ public class SillyGuitar {
 
     }
 
-    public static class PiSequence {
+     public static class PiSequence extends JTextField {
+        JLabel label;
+
+        PiSequence() {
+            label = new JLabel("100%");
+            setText("Enter PI Digits...");
+            setPreferredSize(new Dimension(250, 40));
+            addActionListener(e -> {
+                String input = getText();
+                label.setText(Volume(input) + "%");
+                setText("Enter PI Digits...");
+                transferFocus();
+            });
+        }
+
+        int Volume(String input) {
+            String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
+            int inputLength = Math.min(input.length(), pi.length());
+            String truePi = pi.substring(0, inputLength);
+
+            if (truePi.equals(input)) {
+                return (pi.length() - inputLength);
+            }
+
+            return 100;
+        }
 
     }
 
