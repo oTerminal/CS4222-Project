@@ -120,19 +120,13 @@ public class SillyGuitar {
                             }
 
                             final int fIdx = fretIndex;
-                            new Thread(() -> {
-                                try {
-                                    double base = frequencies[idx];
+                            double base = frequencies[idx];
 
-                                    // Increase pitch by semitones based on fret
-                                    double noteFreq = (fIdx >= 0)
-                                            ? base * Math.pow(2, fIdx / 12.0)
-                                            : base;
-                                    soundEngine.playKarplusStrong(noteFreq, 1.5);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                }
-                            }).start();
+                            // Increase pitch by semitones based on fret
+                            double noteFreq = (fIdx >= 0)
+                                    ? base * Math.pow(2, fIdx / 12.0)
+                                    : base;
+                            soundEngine.playKarplusStrong(noteFreq, 1.5);
                         }
                     }
                 }
@@ -145,52 +139,28 @@ public class SillyGuitar {
             Action EAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    new Thread(() -> {
-                        try {
-                            soundEngine.playKarplusStrong(frequencies[0], 1.5);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
+                    soundEngine.playKarplusStrong(frequencies[0], 1.5);
                 }
             };
 
             Action BAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    new Thread(() -> {
-                        try {
-                            soundEngine.playKarplusStrong(frequencies[1], 1.5);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
+                    soundEngine.playKarplusStrong(frequencies[1], 1.5);
                 }
             };
 
             Action GAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    new Thread(() -> {
-                        try {
-                            soundEngine.playKarplusStrong(frequencies[2], 1.5);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
+                    soundEngine.playKarplusStrong(frequencies[2], 1.5);
                 }
             };
 
             Action DAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    new Thread(() -> {
-                        try {
-                            soundEngine.playKarplusStrong(frequencies[3], 1.5);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
+                    soundEngine.playKarplusStrong(frequencies[3], 1.5);
                 }
             };
 
@@ -281,49 +251,92 @@ public class SillyGuitar {
     }
 
     public static class SoundEngine {
+        private static final float SAMPLE_RATE = 44100f;
+        private static final int BUFFER_SAMPLES = 1024;
 
-        // AI - Start (But I put this code into this class.)
-        public void playKarplusStrong(double freq, double durationSeconds) throws LineUnavailableException {
-            final float sampleRate = 44100;
-            int bufferSize = (int) (sampleRate / freq);
+        private final SourceDataLine line;
+        private final double[] mixBuffer = new double[BUFFER_SAMPLES];
+        private final java.util.List<ActiveString> activeStrings = java.util.Collections
+                .synchronizedList(new java.util.ArrayList<>());
+        private final Thread mixerThread;
 
-            // Fill buffer with noise (initial excitation)
-            double[] buffer = new double[bufferSize];
-            Random rand = new Random();
-            for (int i = 0; i < bufferSize; i++) {
-                buffer[i] = rand.nextDouble() - 0.5;
+        // Represents one currently-ringing Karplus-Strong string
+        private static class ActiveString {
+            double[] ring;
+            int index;
+            int samplesLeft;
+
+            ActiveString(double freq, double durationSeconds) {
+                int N = (int) Math.round(SAMPLE_RATE / freq);
+                ring = new double[N];
+                Random rand = new Random();
+                for (int i = 0; i < N; i++)
+                    ring[i] = rand.nextDouble() - 0.5;
+                index = 0;
+                samplesLeft = (int) (durationSeconds * SAMPLE_RATE);
             }
 
-            AudioFormat format = new AudioFormat(sampleRate, 16, 1, true, true);
-            SourceDataLine line = AudioSystem.getSourceDataLine(format);
-            line.open(format);
-            line.start();
-
-            int samplesToPlay = (int) (durationSeconds * sampleRate);
-            byte[] audio = new byte[2];
-
-            int index = 0;
-            while (samplesToPlay-- > 0) {
-                // Karplus–Strong update
-                double first = buffer[index];
-                double next = buffer[(index + 1) % buffer.length];
-                double newSample = 0.996 * 0.5 * (first + next);
-                buffer[index] = newSample;
-
-                index = (index + 1) % buffer.length;
-
-                // Convert to 16-bit audio
-                short s = (short) (newSample * Short.MAX_VALUE);
-                audio[0] = (byte) (s >> 8);
-                audio[1] = (byte) (s);
-
-                line.write(audio, 0, 2);
+            double nextSample() {
+                double first = ring[index];
+                double next = ring[(index + 1) % ring.length];
+                double s = 0.996 * 0.5 * (first + next);
+                ring[index] = s;
+                index = (index + 1) % ring.length;
+                samplesLeft--;
+                return first;
             }
+        }
 
-            line.drain();
-            line.close();
-        } // AI - End
+        public SoundEngine() {
+            SourceDataLine tmp = null;
+            try {
+                AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, false);
+                tmp = AudioSystem.getSourceDataLine(format);
+                tmp.open(format, BUFFER_SAMPLES * 2);
+                tmp.start();
+            } catch (LineUnavailableException e) {
+                e.printStackTrace();
+            }
+            line = tmp;
 
+            // Single dedicated audio thread — runs forever
+            mixerThread = new Thread(() -> {
+                byte[] outBytes = new byte[BUFFER_SAMPLES * 2];
+                while (!Thread.currentThread().isInterrupted()) {
+                    // Zero the mix buffer
+                    java.util.Arrays.fill(mixBuffer, 0.0);
+
+                    // Sum all active strings into mixBuffer
+                    synchronized (activeStrings) {
+                        activeStrings.removeIf(s -> s.samplesLeft <= 0);
+                        for (ActiveString s : activeStrings) {
+                            for (int i = 0; i < BUFFER_SAMPLES; i++) {
+                                if (s.samplesLeft > 0)
+                                    mixBuffer[i] += s.nextSample();
+                            }
+                        }
+                    }
+
+                    // Convert mix to 16-bit PCM with soft clipping
+                    for (int i = 0; i < BUFFER_SAMPLES; i++) {
+                        double sample = Math.tanh(mixBuffer[i]); // soft clip instead of hard distort
+                        short s = (short) (sample * Short.MAX_VALUE * 0.5);
+                        outBytes[2 * i] = (byte) (s & 0xFF);
+                        outBytes[2 * i + 1] = (byte) ((s >> 8) & 0xFF);
+                    }
+
+                    line.write(outBytes, 0, outBytes.length);
+                }
+            });
+            mixerThread.setDaemon(true);
+            mixerThread.setPriority(Thread.MAX_PRIORITY); // audio gets CPU priority
+            mixerThread.start();
+        }
+
+        // Now just adds a string to the active list — returns instantly, no blocking
+        public void playKarplusStrong(double freq, double durationSeconds) {
+            activeStrings.add(new ActiveString(freq, durationSeconds));
+        }
     }
 
     public static class customCursor {
@@ -387,7 +400,7 @@ public class SillyGuitar {
         ScreenManager screenManager = new ScreenManager();
         customCursor cur = new customCursor();
 
-        //frame.setCursor(cur.cursor);
+        // frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
