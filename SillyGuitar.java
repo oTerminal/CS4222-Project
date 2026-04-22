@@ -65,37 +65,87 @@ public class SillyGuitar {
     public static class GuitarScreen extends JPanel {
         PopupManager popupManager;
         StringPanel stringPanel;
+        TuningPanel tuningPanel;
 
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
+            tuningPanel = new TuningPanel(stringPanel);
 
-            add(stringPanel);
+            add(stringPanel, BorderLayout.CENTER);
+            add(tuningPanel, BorderLayout.SOUTH);
 
+            JPanel topPanel = new JPanel();
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
             continueBtn.addActionListener(e -> JOptionPane.showMessageDialog(null, popupManager.triggerPopup()));
             add(continueBtn);
-
+            topPanel.add(continueBtn);
+            add(topPanel, BorderLayout.NORTH);
             
         }
     }
 
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
+        Random random;
 
         //AI - Start
         private final int[] yPositions = {50, 100, 150, 200, 250, 300};
         private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
+        private double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
+
+         private int playDelayMs = 500;
+
+        //ghost 7th string
+        private boolean ghostVisible = false;   
+        private int ghostY = 350;               
+        private double ghostFrequency = 220.0;  
+        private javax.swing.Timer ghostTimer; 
 
         public StringPanel() {
             soundEngine = new SoundEngine();
-
             setPreferredSize(new Dimension(800, 400));
+
+            ghostTimer = new javax.swing.Timer(7000, null);
+            ghostTimer.addActionListener(e -> {
+            if (!ghostVisible) {
+            ghostY = 330 + random.nextInt(40);
+            ghostFrequency = 80 + random.nextInt(500);
+            ghostVisible = true;
+            repaint();
+            javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
+            ghostVisible = false;
+            repaint();
+            });
+            hideTimer.setRepeats(false);
+            hideTimer.start();
+            }
+            ghostTimer.setDelay(5000 + random.nextInt(4000));
+            });
+            ghostTimer.start();
+
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-                    for (int i = 0; i < yPositions.length; i++) {
+
+                     if (ghostVisible && Math.abs(e.getY() - ghostY) < 10) {
+                        ghostVisible = false; 
+                        repaint();
+                        final double freq = ghostFrequency;
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(playDelayMs); 
+                                soundEngine.playKarplusStrong(freq, 1.5);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }).start();
+                        return; 
+        
+                        }
+
+                        for (int i = 0; i < yPositions.length; i++) {
                         final int idx = i;   // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS LINE
                         if (Math.abs(e.getY() - yPositions[i]) < 10) {
                             new Thread(() -> {
