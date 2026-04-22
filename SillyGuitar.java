@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
@@ -68,6 +69,7 @@ public class SillyGuitar {
         StringPanel stringPanel;
         PiSequence piSequence;
 
+
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
@@ -75,7 +77,6 @@ public class SillyGuitar {
 
             add(stringPanel);
             add(piSequence);
-            add(piSequence.label);
 
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
@@ -88,11 +89,12 @@ public class SillyGuitar {
         SoundEngine soundEngine;
         PopupManager popupManager;
 
+
         // AI - Start
         // Horizontal fret lines (x‑positions)
         private final int[] frets = { 150, 250, 350, 450, 550, 650 };
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300, 350 };
-        private final double[] frequencies = { 82.0, 110.0, 147.0, 196.0, 247.0, 330.0, 67.0 };
+        private final double[] frequencies = { 110.0, 146.83, 196.00, 246.94, 329.63, 432, 440 };
 
         public StringPanel() {
             popupManager = new PopupManager();
@@ -120,25 +122,18 @@ public class SillyGuitar {
                             }
 
                             final int fIdx = fretIndex;
-                            new Thread(() -> {
-                                try {
-                                    double base = frequencies[idx];
 
-                                    // Increase pitch by semitones based on fret
-                                    double noteFreq = (fIdx >= 0)
-                                            ? base * Math.pow(2, fIdx / 12.0)
-                                            : base;
-                                    soundEngine.playKarplusStrong(noteFreq, 1.5);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
-                                }
-                            }).start();
+                            double base = frequencies[idx];
+                            int semitone = (fIdx >= 0) ? fIdx : 0;
+                            double noteFreq = base * Math.pow(2, semitone / 12.0);
+
+                            soundEngine.playNote(noteFreq);
+
                         }
                     }
                 }
             });
 
-            // keyboard input for playing the guitar using Key Bindings
             InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
             ActionMap actionMap = getActionMap();
 
@@ -147,7 +142,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[0], 1.5);
+                            soundEngine.playNote(frequencies[0]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -160,7 +155,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[1], 1.5);
+                            soundEngine.playNote(frequencies[1]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -173,7 +168,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[2], 1.5);
+                            soundEngine.playNote(frequencies[2]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -186,7 +181,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[3], 1.5);
+                            soundEngine.playNote(frequencies[3]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -199,7 +194,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[4], 1.5);
+                            soundEngine.playNote(frequencies[4]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -212,7 +207,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[5], 1.5);
+                            soundEngine.playNote(frequencies[5]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -225,7 +220,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playKarplusStrong(frequencies[6], 1.5);
+                            soundEngine.playNote(frequencies[6]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -249,6 +244,7 @@ public class SillyGuitar {
             actionMap.put("eAction", eAction);
             actionMap.put("ghostAction", ghostAction);
         }
+
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -282,69 +278,124 @@ public class SillyGuitar {
 
     public static class SoundEngine {
 
-        // AI - Start (But I put this code into this class.)
-        public void playKarplusStrong(double freq, double durationSeconds) throws LineUnavailableException {
-            final float sampleRate = 44100;
-            int bufferSize = (int) (sampleRate / freq);
+        private static final float SAMPLE_RATE = 44100f;
+        private static final int BUFFER_SIZE = 512;
+        private static final double MASTER_GAIN = 0.2; // prevents clipping
 
-            // Fill buffer with noise (initial excitation)
-            double[] buffer = new double[bufferSize];
-            Random rand = new Random();
-            for (int i = 0; i < bufferSize; i++) {
-                buffer[i] = rand.nextDouble() - 0.5;
+        private SourceDataLine line;
+        private volatile boolean running = true;
+        
+
+        // Active plucked strings
+        private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        public SoundEngine() {
+            try {
+                AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, true);
+                line = AudioSystem.getSourceDataLine(format);
+                line.open(format, BUFFER_SIZE * 2);
+                line.start();
+
+                FloatControl volume = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
+                volume.setValue(1.0f);
+
+                Thread audioThread = new Thread(this::audioLoop);
+                audioThread.setDaemon(true);
+                audioThread.start();
+
+            } catch (LineUnavailableException e) {
+                e.printStackTrace();
+            }
+        }
+
+        /** Main audio loop */
+        private void audioLoop() {
+            byte[] outBuffer = new byte[BUFFER_SIZE * 2];
+
+            while (running) {
+                for (int i = 0; i < BUFFER_SIZE; i++) {
+                    double mix = 0.0;
+
+                    for (KarplusString s : strings) {
+                        mix += s.nextSample();
+                        if (s.isFinished()) {
+                            strings.remove(s);
+                        }
+                    }
+
+                    // normalize + clip
+                    mix *= MASTER_GAIN;
+                    mix = Math.max(-1.0, Math.min(1.0, mix));
+
+                    short sample = (short) (mix * Short.MAX_VALUE);
+
+                    outBuffer[i * 2] = (byte) (sample >> 8);
+                    outBuffer[i * 2 + 1] = (byte) (sample);
+                }
+                line.write(outBuffer, 0, outBuffer.length);
+            }
+        }
+
+        /** Public API: pluck a string */
+        public void playNote(double frequency) {
+            // limit polyphony (like a real guitar)
+            if (strings.size() < 8) {
+                strings.add(new KarplusString(frequency));
+            }
+        }
+
+        /** One Karplus–Strong string */
+        private static class KarplusString {
+            private final double[] buffer;
+            private int index = 0;
+            private int life;
+
+            KarplusString(double freq) {
+                int size = Math.max(2, (int) (SAMPLE_RATE / freq));
+                buffer = new double[size];
+                java.util.Random r = new java.util.Random();
+
+                for (int i = 0; i < buffer.length; i++) {
+                    buffer[i] = (r.nextDouble() - 0.5);
+                }
+                life = (int) (SAMPLE_RATE * 0.7); // ~0.7s decay
             }
 
-            AudioFormat format = new AudioFormat(sampleRate, 16, 1, true, true);
-            SourceDataLine line = AudioSystem.getSourceDataLine(format);
-            line.open(format);
-            line.start();
-
-            int samplesToPlay = (int) (durationSeconds * sampleRate);
-            byte[] audio = new byte[2];
-
-            int index = 0;
-            while (samplesToPlay-- > 0) {
-                // Karplus–Strong update
+            double nextSample() {
                 double first = buffer[index];
                 double next = buffer[(index + 1) % buffer.length];
-                double newSample = 0.996 * 0.5 * (first + next);
-                buffer[index] = newSample;
+                double value = 0.996 * 0.5 * (first + next);
 
+                buffer[index] = value;
                 index = (index + 1) % buffer.length;
+                life--;
 
-                // Convert to 16-bit audio
-                short s = (short) (newSample * Short.MAX_VALUE);
-                audio[0] = (byte) (s >> 8);
-                audio[1] = (byte) (s);
-
-                line.write(audio, 0, 2);
+                return value;
             }
 
-            line.drain();
-            line.close();
-        } // AI - End
+            boolean isFinished() {
+                return life <= 0;
+            }
+        }
+    }
+
+    public static class Cursor {
 
     }
 
-    public static class customCursor {
-        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(),
-                new Point(0, 0), "Custom cursor");
-    }
-
-    // class that takes input from the user and displays the changed volume
-    public static class PiSequence extends JTextField {
-        JLabel label;
-
+     public static class PiSequence extends JPanel {
         PiSequence() {
-            label = new JLabel("100%");
-            setText("Enter PI Digits...");
-            setPreferredSize(new Dimension(250, 40));
-            addActionListener(e -> {
-                String input = getText();
+            JTextField textField = new JTextField("Enter PI Digits...");
+            JLabel label = new JLabel("100%");
+            textField.setPreferredSize(new Dimension(250, 40));
+            textField.addActionListener(e -> {
+                String input = textField.getText();
                 label.setText(Volume(input) + "%");
-                setText("Enter PI Digits...");
+                textField.setText("Enter PI Digits...");
                 transferFocus();
             });
+            add(textField);
+            add(label);
         }
 
         int Volume(String input) {
@@ -385,9 +436,7 @@ public class SillyGuitar {
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-        customCursor cur = new customCursor();
 
-        //frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
