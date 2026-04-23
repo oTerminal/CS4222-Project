@@ -22,7 +22,8 @@ public class SillyGuitar {
         CUSTOM,
 
     }
-
+    
+    public static SoundEngine soundEngine = new SoundEngine();
     // This class will control what screen to change to and what is currently
     // showing.
     public static class ScreenManager extends JPanel {
@@ -86,19 +87,16 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        SoundEngine soundEngine;
         PopupManager popupManager;
-
-
         // AI - Start
         // Horizontal fret lines (x‑positions)
         private final int[] frets = { 150, 250, 350, 450, 550, 650 };
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300, 350 };
         private final double[] frequencies = { 110.0, 146.83, 196.00, 246.94, 329.63, 432, 440 };
+        private final double[] gMajorFreq = { 92.50, 116.54, 146.83, 196.00, 246.94, 369.99 };
 
         public StringPanel() {
             popupManager = new PopupManager();
-            soundEngine = new SoundEngine();
 
             setPreferredSize(new Dimension(800, 400));
             addMouseListener(new MouseAdapter() {
@@ -127,7 +125,7 @@ public class SillyGuitar {
                             int semitone = (fIdx >= 0) ? fIdx : 0;
                             double noteFreq = base * Math.pow(2, semitone / 12.0);
 
-                            soundEngine.playNote(noteFreq);
+                            SillyGuitar.soundEngine.playNote(noteFreq);
 
                         }
                     }
@@ -142,7 +140,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[0]);
+                            SillyGuitar.soundEngine.playNote(frequencies[0]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -155,7 +153,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[1]);
+                            SillyGuitar.soundEngine.playNote(frequencies[1]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -168,7 +166,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[2]);
+                            SillyGuitar.soundEngine.playNote(frequencies[2]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -181,7 +179,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[3]);
+                            SillyGuitar.soundEngine.playNote(frequencies[3]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -194,7 +192,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[4]);
+                            SillyGuitar.soundEngine.playNote(frequencies[4]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -207,7 +205,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[5]);
+                            SillyGuitar.soundEngine.playNote(frequencies[5]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -220,11 +218,23 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[6]);
+                            SillyGuitar.soundEngine.playNote(frequencies[6]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
                     }).start();
+                }
+            };
+            
+            Action GMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    soundEngine.playNote(gMajorFreq[0]);
+                    soundEngine.playNote(gMajorFreq[1]);
+                    soundEngine.playNote(gMajorFreq[2]);
+                    soundEngine.playNote(gMajorFreq[3]);
+                    soundEngine.playNote(gMajorFreq[4]);
+                    soundEngine.playNote(gMajorFreq[5]);
                 }
             };
 
@@ -235,6 +245,7 @@ public class SillyGuitar {
             inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
             inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
             inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
+            inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
 
             actionMap.put("EAction", EAction);
             actionMap.put("BAction", BAction);
@@ -243,6 +254,7 @@ public class SillyGuitar {
             actionMap.put("AAction", AAction);
             actionMap.put("eAction", eAction);
             actionMap.put("ghostAction", ghostAction);
+            actionMap.put("GMajorAction", GMajorAction);
         }
 
 
@@ -284,7 +296,8 @@ public class SillyGuitar {
 
         private SourceDataLine line;
         private volatile boolean running = true;
-        
+        FloatControl vol;
+        float volume = 100;
 
         // Active plucked strings
         private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
@@ -295,9 +308,9 @@ public class SillyGuitar {
                 line = AudioSystem.getSourceDataLine(format);
                 line.open(format, BUFFER_SIZE * 2);
                 line.start();
-
-                FloatControl volume = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);
-                volume.setValue(1.0f);
+                
+                vol = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);//using AI
+                updateVolume();
 
                 Thread audioThread = new Thread(this::audioLoop);
                 audioThread.setDaemon(true);
@@ -306,6 +319,13 @@ public class SillyGuitar {
             } catch (LineUnavailableException e) {
                 e.printStackTrace();
             }
+        }
+        
+        public void updateVolume() {
+                float min = vol.getMinimum();// -80.0 dB
+                float max = vol.getMaximum();// 6.0206 dB
+                float gain = min + (volume / 100.0f) * (max - min);
+                vol.setValue(gain);
         }
 
         /** Main audio loop */
@@ -379,37 +399,45 @@ public class SillyGuitar {
         }
     }
 
-    public static class Cursor {
-
+    public static class customCursor {
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(), new Point (0, 0), "Custom cursor");
     }
 
      public static class PiSequence extends JPanel {
         PiSequence() {
             JTextField textField = new JTextField("Enter PI Digits...");
-            JLabel label = new JLabel("100%");
+            JLabel label = new JLabel("0%");
             textField.setPreferredSize(new Dimension(250, 40));
+            
             textField.addActionListener(e -> {
-                String input = textField.getText();
-                label.setText(Volume(input) + "%");
+                String input = textField.getText();//using AI
+                label.setText((100 - volumeCalc(input)) + "%");
                 textField.setText("Enter PI Digits...");
-                transferFocus();
+                textField.transferFocus();//using AI
             });
+            
             add(textField);
             add(label);
         }
 
-        int Volume(String input) {
+        int volumeCalc(String input) {
             String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
             int inputLength = Math.min(input.length(), pi.length());
             String truePi = pi.substring(0, inputLength);
 
             if (truePi.equals(input)) {
-                return (pi.length() - inputLength);
+                int volume = pi.length() - inputLength;
+                soundEngine.volume = volume;
+                soundEngine.updateVolume();
+                return volume;
             }
-
-            return 100;
+            else{
+                int volume = 100;
+                soundEngine.volume = volume;
+                soundEngine.updateVolume();
+                return 100;
+            }
         }
-
     }
 
     public static class PopupManager {
@@ -426,17 +454,19 @@ public class SillyGuitar {
         }
 
         void triggerRandomPopup() {
-            int index = random.nextInt(funFacts.length);
-
-            JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+            if (Math.random() > 0.7) {
+                int index = random.nextInt(funFacts.length);
+                JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+            }
         }
-
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-
+        //customCursor cur = new customCursor();
+        
+        //frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(frame.getExtendedState() | Frame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
