@@ -1,15 +1,16 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.Random;
 
 public class SillyGuitar {
 
-    // These are simply the screens of our game, basically what screen in our sketch we will be in.
+    // These are simply the screens of our game, basically what screen in our sketch
+    // we will be in.
     public static enum GameState {
         TUTORIAL,
         INSTRUMENT;
@@ -18,11 +19,12 @@ public class SillyGuitar {
     public static enum TuningState {
         DEFAULT_WRONG,
         CUSTOM,
-        
+
     }
 
-    // This class will control what screen to change to and what is currently showing.
-    public static class ScreenManager extends JPanel{
+    // This class will control what screen to change to and what is currently
+    // showing.
+    public static class ScreenManager extends JPanel {
         CardLayout cardLayout;
         SplashScreen splashScreen;
         GuitarScreen guitarScreen;
@@ -40,15 +42,14 @@ public class SillyGuitar {
             cardLayout.show(this, GameState.TUTORIAL.name());
         }
 
-        void switchTo(GameState state)
-        {
+        void switchTo(GameState state) {
             cardLayout.show(this, state.name());
         }
 
     }
 
-    // This is the simply the class for the splash screen. 
-    public static class SplashScreen extends JPanel{
+    // This is the simply the class for the splash screen.
+    public static class SplashScreen extends JPanel {
         ScreenManager screenManager;
 
         SplashScreen(ScreenManager screenManager) {
@@ -65,45 +66,32 @@ public class SillyGuitar {
     public static class GuitarScreen extends JPanel {
         PopupManager popupManager;
         StringPanel stringPanel;
-        TuningPanel tuningPanel;
 
         GuitarScreen() {
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
-            tuningPanel = new TuningPanel(stringPanel);
 
-            add(stringPanel, BorderLayout.CENTER);
-            add(tuningPanel, BorderLayout.SOUTH);
+            add(stringPanel);
 
             JPanel topPanel = new JPanel();
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
-            continueBtn.addActionListener(e -> JOptionPane.showMessageDialog(null, popupManager.triggerPopup()));
+            continueBtn.addActionListener(e -> popupManager.triggerRandomPopup());
             add(continueBtn);
-            topPanel.add(continueBtn);
-            add(topPanel, BorderLayout.NORTH);
+
             
         }
     }
 
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
-        Random random;
 
         //AI - Start
         private final int[] yPositions = {50, 100, 150, 200, 250, 300};
         private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
-        private double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
-
-         private int playDelayMs = 500;
-
-        //ghost 7th string
-        private boolean ghostVisible = false;   
-        private int ghostY = 350;               
-        private double ghostFrequency = 220.0;  
-        private javax.swing.Timer ghostTimer; 
 
         public StringPanel() {
+            popupManager = new PopupManager();
             soundEngine = new SoundEngine();
             setPreferredSize(new Dimension(800, 400));
 
@@ -128,37 +116,158 @@ public class SillyGuitar {
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
-
-                     if (ghostVisible && Math.abs(e.getY() - ghostY) < 10) {
-                        ghostVisible = false; 
-                        repaint();
-                        final double freq = ghostFrequency;
-                        new Thread(() -> {
-                            try {
-                                Thread.sleep(playDelayMs); 
-                                soundEngine.playKarplusStrong(freq, 1.5);
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }).start();
-                        return; 
-        
-                        }
-
-                        for (int i = 0; i < yPositions.length; i++) {
+                    for (int i = 0; i < yPositions.length; i++) {
                         final int idx = i;   // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS LINE
                         if (Math.abs(e.getY() - yPositions[i]) < 10) {
-                            new Thread(() -> {
-                                try {
-                                    soundEngine.playKarplusStrong(frequencies[idx], 1.5);
-                                } catch (Exception ex) {
-                                    ex.printStackTrace();
+                            // Detect fret clicked (if any)
+                            int fretIndex = -1;
+                            for (int f = 0; f < frets.length; f++) {
+                                if (e.getX() < frets[f]) {
+                                    fretIndex = f; // the first fret to the right is the one you pressed
+                                    break;
                                 }
-                            }).start();
+                            }
+
+                            if (e.getX() > frets[frets.length - 1]) {
+                                fretIndex = frets.length; // extra frets beyond the last one (rare, but fine)
+                            }
+
+                            final int fIdx = fretIndex;
+
+                            double base = frequencies[idx];
+                            int semitone = (fIdx >= 0) ? fIdx : 0;
+                            double noteFreq = base * Math.pow(2, semitone / 12.0);
+
+                            soundEngine.playNote(noteFreq);
+
                         }
                     }
                 }
             });
+
+            InputMap inputMap = getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+            ActionMap actionMap = getActionMap();
+
+            Action EAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[0]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action BAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[1]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action GAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[2]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action DAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[3]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action AAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[4]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action eAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[5]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action ghostAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    new Thread(() -> {
+                        try {
+                            soundEngine.playNote(frequencies[6]);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                }
+            };
+
+            Action GMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    soundEngine.playNote(gMajorFreq[0]);
+                    soundEngine.playNote(gMajorFreq[1]);
+                    soundEngine.playNote(gMajorFreq[2]);
+                    soundEngine.playNote(gMajorFreq[3]);
+                    soundEngine.playNote(gMajorFreq[4]);
+                    soundEngine.playNote(gMajorFreq[5]);
+                }
+            };
+
+            inputMap.put(KeyStroke.getKeyStroke("1"), "EAction");
+            inputMap.put(KeyStroke.getKeyStroke("2"), "BAction");
+            inputMap.put(KeyStroke.getKeyStroke("3"), "GAction");
+            inputMap.put(KeyStroke.getKeyStroke("4"), "DAction");
+            inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
+            inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
+            inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
+            inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
+
+            actionMap.put("EAction", EAction);
+            actionMap.put("BAction", BAction);
+            actionMap.put("GAction", GAction);
+            actionMap.put("DAction", DAction);
+            actionMap.put("AAction", AAction);
+            actionMap.put("eAction", eAction);
+            actionMap.put("ghostAction", ghostAction);
+            actionMap.put("GMajorAction", GMajorAction);
         }
 
         @Override
@@ -168,16 +277,20 @@ public class SillyGuitar {
             Graphics2D g2d = (Graphics2D) g; // Not AI
 
             g2d.setColor(Color.RED);
-            g2d.setStroke(new BasicStroke(3));  // Not AI
+            g2d.setStroke(new BasicStroke(3)); // Not AI
 
             for (int y : yPositions) {
                 g2d.drawLine(50, y, 750, y);
             }
+
+            g2d.setColor(Color.GRAY);
+            for (int x : frets) {
+                g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
+            }
+
         }
 
-        /** Plays a plucked string using the Karplus–Strong algorithm. */
-
-    } //AI - Finish
+    } // AI - Finish
 
     public static class TuningPanel extends JPanel {
 
@@ -189,55 +302,137 @@ public class SillyGuitar {
 
     public static class SoundEngine {
 
-        //AI - Start (But I put this code into this class.)
-        public void playKarplusStrong(double freq, double durationSeconds) throws LineUnavailableException {
-            final float sampleRate = 44100;
-            int bufferSize = (int) (sampleRate / freq);
+        PopupManager popupManager = new PopupManager();
 
-            // Fill buffer with noise (initial excitation)
-            double[] buffer = new double[bufferSize];
-            Random rand = new Random();
-            for (int i = 0; i < bufferSize; i++) {
-                buffer[i] = rand.nextDouble() - 0.5;
+        private static final float SAMPLE_RATE = 44100f;
+        private static final int BUFFER_SIZE = 512;
+        private static final double MASTER_GAIN = 0.2; // prevents clipping
+
+        private SourceDataLine line;
+        private volatile boolean running = true;
+
+        // Active plucked strings
+        private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        public SoundEngine() {
+            try {
+                AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, true);
+                line = AudioSystem.getSourceDataLine(format);
+                line.open(format, BUFFER_SIZE * 2);
+                line.start();
+
+                Thread audioThread = new Thread(this::audioLoop);
+                audioThread.setDaemon(true);
+                audioThread.start();
+
+            } catch (LineUnavailableException e) {
+                e.printStackTrace();
+            }
+        }
+
+        /** Main audio loop */
+        private void audioLoop() {
+            byte[] outBuffer = new byte[BUFFER_SIZE * 2];
+
+            while (running) {
+                for (int i = 0; i < BUFFER_SIZE; i++) {
+                    double mix = 0.0;
+
+                    for (KarplusString s : strings) {
+                        mix += s.nextSample();
+                        if (s.isFinished()) {
+                            strings.remove(s);
+                        }
+                    }
+
+                    // normalize + clip
+                    mix *= MASTER_GAIN;
+                    mix = Math.max(-1.0, Math.min(1.0, mix));
+
+                    short sample = (short) (mix * Short.MAX_VALUE);
+
+                    outBuffer[i * 2] = (byte) (sample >> 8);
+                    outBuffer[i * 2 + 1] = (byte) (sample);
+                }
+                line.write(outBuffer, 0, outBuffer.length);
+            }
+        }
+
+        /** Public API: pluck a string */
+        public void playNote(double frequency) {
+            // limit polyphony (like a real guitar)
+            if (strings.size() < 100) {
+                strings.add(new KarplusString(frequency));
+            }
+            // popupManager.triggerRandomPopup();
+
+        }
+
+        /** One Karplus–Strong string */
+        private static class KarplusString {
+            private final double[] buffer;
+            private int index = 0;
+            private int life;
+
+            KarplusString(double freq) {
+                int size = Math.max(2, (int) (SAMPLE_RATE / freq));
+                buffer = new double[size];
+                java.util.Random r = new java.util.Random();
+
+                for (int i = 0; i < buffer.length; i++) {
+                    buffer[i] = (r.nextDouble() - 0.5);
+                }
+                life = (int) (SAMPLE_RATE * 0.7); // ~0.7s decay
             }
 
-            AudioFormat format = new AudioFormat(sampleRate, 16, 1, true, true);
-            SourceDataLine line = AudioSystem.getSourceDataLine(format);
-            line.open(format);
-            line.start();
-
-            int samplesToPlay = (int) (durationSeconds * sampleRate);
-            byte[] audio = new byte[2];
-
-            int index = 0;
-            while (samplesToPlay-- > 0) {
-                // Karplus–Strong update
+            double nextSample() {
                 double first = buffer[index];
                 double next = buffer[(index + 1) % buffer.length];
-                double newSample = 0.996 * 0.5 * (first + next);
-                buffer[index] = newSample;
+                double value = 0.996 * 0.5 * (first + next);
 
+                buffer[index] = value;
                 index = (index + 1) % buffer.length;
+                life--;
 
-                // Convert to 16-bit audio
-                short s = (short) (newSample * Short.MAX_VALUE);
-                audio[0] = (byte) (s >> 8);
-                audio[1] = (byte) (s);
-
-                line.write(audio, 0, 2);
+                return value;
             }
 
-            line.drain();
-            line.close();
-        } // AI - End
-
+            boolean isFinished() {
+                return life <= 0;
+            }
+        }
     }
 
     public static class Cursor {
 
     }
 
-    public static class PiSequence {
+    public static class PiSequence extends JTextField {
+        JLabel label;
+
+        PiSequence() {
+            label = new JLabel("0%");
+            setText("Enter PI Digits...");
+            setPreferredSize(new Dimension(250, 40));
+            addActionListener(e -> {
+                String input = getText();
+                label.setText(Volume(input) + "%");
+                setText("Enter PI Digits...");
+                transferFocus();
+            });
+        }
+
+        int Volume(String input) {
+            String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
+            int inputLength = Math.min(input.length(), pi.length());
+            String truePi = pi.substring(0, inputLength);
+
+            if (truePi.equals(input)) {
+                return Math.abs(100 - (pi.length() - inputLength));
+            }
+
+            return Math.abs(0);
+        }
 
     }
 
@@ -248,17 +443,19 @@ public class SillyGuitar {
 
         PopupManager() {
             random = new Random();
-            funFacts =  new String[] {
-                "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
-                "gurt", 
-                "hi"};
+            funFacts = new String[] {
+                    "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
+                    "gurt",
+                    "hi" };
         }
 
-        String triggerPopup() {
-            int index = random.nextInt(funFacts.length);
-            return funFacts[index];
+        void triggerRandomPopup() {
+            if (Math.random() > 0.7) {
+                int index = random.nextInt(funFacts.length);
+                JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+            }
         }
-    
+
     }
 
     public static void main(String[] args) {
