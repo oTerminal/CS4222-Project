@@ -66,20 +66,22 @@ public class SillyGuitar {
     public static class GuitarScreen extends JPanel {
         PopupManager popupManager;
         StringPanel stringPanel;
+        PiSequence piSequence;
 
         GuitarScreen() {
             setLayout(new BorderLayout());
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
+            piSequence = new PiSequence();
 
+            JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+            rightPanel.add(piSequence);
+            rightPanel.add(piSequence.label);
+
+            JPanel eastWrapper = new JPanel(new BorderLayout());
+            eastWrapper.add(rightPanel, BorderLayout.NORTH);
+            add(eastWrapper, BorderLayout.EAST);
             add(stringPanel, BorderLayout.CENTER);
-
-            JPanel topPanel = new JPanel();
-            JButton continueBtn = new JButton("Continue");
-            // Listeners learnt in lecture
-            continueBtn.addActionListener(e -> popupManager.triggerRandomPopup());
-            topPanel.add(continueBtn);
-            add(topPanel, BorderLayout.NORTH);
 
             TuningPanel tuningPanel = new TuningPanel(stringPanel);
             add(tuningPanel, BorderLayout.SOUTH);
@@ -100,14 +102,14 @@ public class SillyGuitar {
         private int ghostY = 350;
         private double ghostFrequency = 300;
         private javax.swing.Timer ghostTimer;
-         private static final int NOTE_DELAY_MS = 150;
+        private static final int NOTE_DELAY_MS = 150;
 
         public StringPanel() {
             popupManager = new PopupManager();
             soundEngine = new SoundEngine();
             setPreferredSize(new Dimension(800, 400));
 
-            ghostTimer = new javax.swing.Timer(7000, null);
+            ghostTimer = new javax.swing.Timer(1000 + random.nextInt(1000), null);
             ghostTimer.addActionListener(e -> {
             if (!ghostVisible) {
             int gap = random.nextInt(yPositions.length -1); 
@@ -115,7 +117,7 @@ public class SillyGuitar {
             ghostFrequency = 80 + random.nextInt(500);
             ghostVisible = true;
             repaint();
-             new Thread(() -> {
+            new Thread(() -> {
                 try {
                     Thread.sleep(NOTE_DELAY_MS);
                     soundEngine.playNote(ghostFrequency);
@@ -128,7 +130,7 @@ public class SillyGuitar {
             hideTimer.setRepeats(false);
             hideTimer.start();
             }
-            ghostTimer.setDelay(5000 + random.nextInt(4000));
+            ghostTimer.setDelay(random.nextInt(750));
             });
             ghostTimer.start();
 
@@ -257,20 +259,6 @@ public class SillyGuitar {
                 }
             };
 
-            Action ghostAction = new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    new Thread(() -> {
-                        try {
-                            Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[6]);
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }).start();
-                }
-            };
-
             Action GMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -289,7 +277,6 @@ public class SillyGuitar {
             inputMap.put(KeyStroke.getKeyStroke("4"), "DAction");
             inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
             inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
-            inputMap.put(KeyStroke.getKeyStroke("7"), "ghostAction");
             inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
 
             actionMap.put("EAction", EAction);
@@ -298,7 +285,6 @@ public class SillyGuitar {
             actionMap.put("DAction", DAction);
             actionMap.put("AAction", AAction);
             actionMap.put("eAction", eAction);
-            actionMap.put("ghostAction", ghostAction);
             actionMap.put("GMajorAction", GMajorAction);
         }
 
@@ -542,7 +528,7 @@ public class SillyGuitar {
         ScreenManager screenManager = new ScreenManager();
 
         frame.add(screenManager);
-        frame.setSize(800, 600);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
 
