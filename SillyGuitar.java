@@ -136,7 +136,7 @@ public class SillyGuitar {
 
             addMouseListener(new MouseAdapter() {
                 @Override
-                public void mousePressed(MouseEvent e) {
+                public void mouseReleased(MouseEvent e) {
                     for (int i = 0; i < yPositions.length; i++) {
                         final int idx = i;   // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS LINE
                         if (Math.abs(e.getY() - yPositions[i]) < 10) {
