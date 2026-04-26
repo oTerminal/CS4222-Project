@@ -68,27 +68,39 @@ public class SillyGuitar {
         StringPanel stringPanel;
 
         GuitarScreen() {
+            setLayout(new BorderLayout());
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
 
-            add(stringPanel);
+            add(stringPanel, BorderLayout.CENTER);
 
             JPanel topPanel = new JPanel();
             JButton continueBtn = new JButton("Continue");
             // Listeners learnt in lecture
             continueBtn.addActionListener(e -> popupManager.triggerRandomPopup());
-            add(continueBtn);
+            topPanel.add(continueBtn);
+            add(topPanel, BorderLayout.NORTH);
 
-            
+            TuningPanel tuningPanel = new TuningPanel(stringPanel);
+            add(tuningPanel, BorderLayout.SOUTH);
         }
     }
 
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
-
+        double[]frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
         //AI - Start
         private final int[] yPositions = {50, 100, 150, 200, 250, 300};
-        private final double[] frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
+        private final double[] gMajorFreq = {196.00, 246.94, 392.00, 493.88, 587.33, 783.99};
+        private final int[] frets = {150, 250, 350, 450, 550, 650, 750};
+        
+        PopupManager popupManager;
+        Random random = new Random();
+        private boolean ghostVisible = false;
+        private int ghostY = 350;
+        private double ghostFrequency = 300;
+        private javax.swing.Timer ghostTimer;
+         private static final int NOTE_DELAY_MS = 150;
 
         public StringPanel() {
             popupManager = new PopupManager();
@@ -98,10 +110,17 @@ public class SillyGuitar {
             ghostTimer = new javax.swing.Timer(7000, null);
             ghostTimer.addActionListener(e -> {
             if (!ghostVisible) {
-            ghostY = 330 + random.nextInt(40);
+            int gap = random.nextInt(yPositions.length -1); 
+            ghostY = (yPositions[gap] + yPositions[gap + 1]) / 2; 
             ghostFrequency = 80 + random.nextInt(500);
             ghostVisible = true;
             repaint();
+             new Thread(() -> {
+                try {
+                    Thread.sleep(NOTE_DELAY_MS);
+                    soundEngine.playNote(ghostFrequency);
+                } catch (Exception ex) { ex.printStackTrace(); }
+            }).start();
             javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
             ghostVisible = false;
             repaint();
@@ -138,7 +157,14 @@ public class SillyGuitar {
                             int semitone = (fIdx >= 0) ? fIdx : 0;
                             double noteFreq = base * Math.pow(2, semitone / 12.0);
 
-                            soundEngine.playNote(noteFreq);
+                            new Thread(() -> {
+                                try {
+                                    Thread.sleep(NOTE_DELAY_MS);
+                                    soundEngine.playNote(noteFreq);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                }
+                            }).start();
 
                         }
                     }
@@ -153,6 +179,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[0]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -166,6 +193,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[1]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -179,6 +207,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[2]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -192,6 +221,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[3]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -205,6 +235,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[4]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -231,6 +262,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             soundEngine.playNote(frequencies[6]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -287,12 +319,59 @@ public class SillyGuitar {
             for (int x : frets) {
                 g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
             }
-
+            if (ghostVisible) {
+                g2d.setColor(Color.RED); 
+                g2d.setStroke(new BasicStroke(3));
+                g2d.drawLine(50, ghostY, 750, ghostY);
+            }
         }
 
     } // AI - Finish
 
     public static class TuningPanel extends JPanel {
+        private final StringPanel stringPanel;
+        private final JTextField[] tuningFields = new JTextField[6];
+
+        // The intentionally wrong tuning the Reset button returns to
+        private static final double[] ORIGINAL_WRONG_TUNING = {100.0, 140.0, 190.0, 240.0, 320.0, 430.0};
+        private static final String[] STRING_NAMES = {"E2", "B2", "G3", "D3", "A4", "e4"};
+
+        TuningPanel(StringPanel stringPanel) {
+            this.stringPanel = stringPanel;
+            setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
+            setBorder(BorderFactory.createTitledBorder("Tuning"));
+
+            // Tuning pegs: one label + text field per string (text fields do nothing)
+            for (int i = 0; i < 6; i++) {
+                add(new JLabel(STRING_NAMES[i] + ":"));
+                JTextField field = new JTextField(5);
+                field.setText(String.format("%.1f", stringPanel.frequencies[i]));
+                tuningFields[i] = field;
+                add(field);
+            }
+
+            // Randomise tuning button
+            JButton randomBtn = new JButton("Randomise Tuning");
+            randomBtn.addActionListener(e -> {
+                Random r = new Random();
+                for (int i = 0; i < stringPanel.frequencies.length; i++) {
+                    stringPanel.frequencies[i] = 60 + r.nextDouble() * 600;
+                    tuningFields[i].setText(String.format("%.1f", stringPanel.frequencies[i]));
+                }
+            });
+
+            // Reset to original wrong tuning button
+            JButton resetBtn = new JButton("Reset Tuning (Original)");
+            resetBtn.addActionListener(e -> {
+                for (int i = 0; i < stringPanel.frequencies.length; i++) {
+                    stringPanel.frequencies[i] = ORIGINAL_WRONG_TUNING[i];
+                    tuningFields[i].setText(String.format("%.1f", ORIGINAL_WRONG_TUNING[i]));
+                }
+            });
+
+            add(randomBtn);
+            add(resetBtn);
+        }
 
     }
 
