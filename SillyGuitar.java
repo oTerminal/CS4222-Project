@@ -3,6 +3,7 @@ import java.awt.event.*;
 import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
@@ -21,7 +22,8 @@ public class SillyGuitar {
         CUSTOM,
 
     }
-
+    
+    public static SoundEngine soundEngine = new SoundEngine();
     // This class will control what screen to change to and what is currently
     // showing.
     public static class ScreenManager extends JPanel {
@@ -68,12 +70,15 @@ public class SillyGuitar {
         StringPanel stringPanel;
         PiSequence piSequence;
 
+
         GuitarScreen() {
             setLayout(new BorderLayout());
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
             piSequence = new PiSequence();
 
+            add(stringPanel);
+            add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
             rightPanel.add(piSequence);
             rightPanel.add(piSequence.label);
@@ -106,7 +111,6 @@ public class SillyGuitar {
 
         public StringPanel() {
             popupManager = new PopupManager();
-            soundEngine = new SoundEngine();
             setPreferredSize(new Dimension(800, 400));
 
             ghostTimer = new javax.swing.Timer(1000 + random.nextInt(1000), null);
@@ -162,7 +166,7 @@ public class SillyGuitar {
                             new Thread(() -> {
                                 try {
                                     Thread.sleep(NOTE_DELAY_MS);
-                                    soundEngine.playNote(noteFreq);
+                                    SillyGuitar.soundEngine.playNote(noteFreq);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
@@ -182,7 +186,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[0]);
+                            SillyGuitar.soundEngine.playNote(frequencies[0]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -196,7 +200,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[1]);
+                            SillyGuitar.soundEngine.playNote(frequencies[1]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -210,7 +214,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[2]);
+                            SillyGuitar.soundEngine.playNote(frequencies[2]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -224,7 +228,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[3]);
+                            SillyGuitar.soundEngine.playNote(frequencies[3]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -238,7 +242,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            soundEngine.playNote(frequencies[4]);
+                            SillyGuitar.soundEngine.playNote(frequencies[4]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -251,7 +255,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
-                            soundEngine.playNote(frequencies[5]);
+                            SillyGuitar.soundEngine.playNote(frequencies[5]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -287,6 +291,7 @@ public class SillyGuitar {
             actionMap.put("eAction", eAction);
             actionMap.put("GMajorAction", GMajorAction);
         }
+
 
         @Override
         protected void paintComponent(Graphics g) {
@@ -367,14 +372,14 @@ public class SillyGuitar {
 
     public static class SoundEngine {
 
-        PopupManager popupManager = new PopupManager();
-
         private static final float SAMPLE_RATE = 44100f;
         private static final int BUFFER_SIZE = 512;
         private static final double MASTER_GAIN = 0.2; // prevents clipping
 
         private SourceDataLine line;
         private volatile boolean running = true;
+        FloatControl vol;
+        float volume = 0;
 
         // Active plucked strings
         private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
@@ -385,6 +390,9 @@ public class SillyGuitar {
                 line = AudioSystem.getSourceDataLine(format);
                 line.open(format, BUFFER_SIZE * 2);
                 line.start();
+                
+                vol = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);//using AI
+                updateVolume();
 
                 Thread audioThread = new Thread(this::audioLoop);
                 audioThread.setDaemon(true);
@@ -393,6 +401,13 @@ public class SillyGuitar {
             } catch (LineUnavailableException e) {
                 e.printStackTrace();
             }
+        }
+        
+        public void updateVolume() {
+                float min = vol.getMinimum();// -80.0 dB
+                float max = vol.getMaximum();// 6.0206 dB
+                float gain = min + (volume / 100.0f) * (max - min);
+                vol.setValue(gain);
         }
 
         /** Main audio loop */
@@ -426,11 +441,9 @@ public class SillyGuitar {
         /** Public API: pluck a string */
         public void playNote(double frequency) {
             // limit polyphony (like a real guitar)
-            if (strings.size() < 100) {
+            if (strings.size() < 8) {
                 strings.add(new KarplusString(frequency));
             }
-            // popupManager.triggerRandomPopup();
-
         }
 
         /** One Karplus–Strong string */
@@ -468,37 +481,45 @@ public class SillyGuitar {
         }
     }
 
-    public static class Cursor {
-
+    public static class customCursor {
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(), new Point (0, 0), "Custom cursor");
     }
 
-    public static class PiSequence extends JTextField {
-        JLabel label;
-
+     public static class PiSequence extends JPanel {
         PiSequence() {
-            label = new JLabel("0%");
-            setText("Enter PI Digits...");
-            setPreferredSize(new Dimension(250, 40));
-            addActionListener(e -> {
-                String input = getText();
-                label.setText(Volume(input) + "%");
-                setText("Enter PI Digits...");
-                transferFocus();
+            JTextField textField = new JTextField("Enter PI Digits...");
+            JLabel label = new JLabel("100%");
+            textField.setPreferredSize(new Dimension(250, 40));
+            
+            textField.addActionListener(e -> {
+                String input = textField.getText();//using AI
+                label.setText((100 - volumeCalc(input)) + "%");
+                textField.setText("Enter PI Digits...");
+                textField.transferFocus();//using AI
             });
+            
+            add(textField);
+            add(label);
         }
 
-        int Volume(String input) {
+        int volumeCalc(String input) {
             String pi = "3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706";
             int inputLength = Math.min(input.length(), pi.length());
             String truePi = pi.substring(0, inputLength);
 
             if (truePi.equals(input)) {
-                return Math.abs(100 - (pi.length() - inputLength));
+                int volume = inputLength;
+                soundEngine.volume = volume;
+                soundEngine.updateVolume();
+                return volume;
             }
-
-            return Math.abs(0);
+            else{
+                int volume = 100;
+                soundEngine.volume = volume;
+                soundEngine.updateVolume();
+                return 100;
+            }
         }
-
     }
 
     public static class PopupManager {
@@ -520,13 +541,14 @@ public class SillyGuitar {
                 JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
             }
         }
-
     }
 
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-
+        //customCursor cur = new customCursor();
+        
+        //frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
