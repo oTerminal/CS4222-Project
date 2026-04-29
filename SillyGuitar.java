@@ -81,7 +81,7 @@ public class SillyGuitar {
             add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
             rightPanel.add(piSequence);
-            rightPanel.add(piSequence.label);
+            //rightPanel.add(piSequence);
 
             JPanel eastWrapper = new JPanel(new BorderLayout());
             eastWrapper.add(rightPanel, BorderLayout.NORTH);
@@ -124,7 +124,7 @@ public class SillyGuitar {
             new Thread(() -> {
                 try {
                     Thread.sleep(NOTE_DELAY_MS);
-                    soundEngine.playNote(ghostFrequency);
+                    SillyGuitar.soundEngine.playNote(ghostFrequency);
                 } catch (Exception ex) { ex.printStackTrace(); }
             }).start();
             javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
@@ -266,12 +266,12 @@ public class SillyGuitar {
             Action GMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    soundEngine.playNote(gMajorFreq[0]);
-                    soundEngine.playNote(gMajorFreq[1]);
-                    soundEngine.playNote(gMajorFreq[2]);
-                    soundEngine.playNote(gMajorFreq[3]);
-                    soundEngine.playNote(gMajorFreq[4]);
-                    soundEngine.playNote(gMajorFreq[5]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[4]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[5]);
                 }
             };
 
