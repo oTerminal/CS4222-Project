@@ -90,7 +90,7 @@ public class SillyGuitar {
 
     public static class StringPanel extends JPanel {
         SoundEngine soundEngine;
-        double[]frequencies = {110.0, 146.83, 196.00, 246.94, 329.63, 440.0};
+        double[]frequencies = {82.0, 110.0, 147.0, 196.0, 247.0, 330.0};
         //AI - Start
         private final int[] yPositions = {50, 100, 150, 200, 250, 300};
         private final double[] gMajorFreq = {196.00, 246.94, 392.00, 493.88, 587.33, 783.99};
