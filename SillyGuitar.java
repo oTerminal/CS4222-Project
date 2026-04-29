@@ -297,7 +297,7 @@ public class SillyGuitar {
         private SourceDataLine line;
         private volatile boolean running = true;
         FloatControl vol;
-        float volume = 100;
+        float volume = 0;
 
         // Active plucked strings
         private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
@@ -406,7 +406,7 @@ public class SillyGuitar {
      public static class PiSequence extends JPanel {
         PiSequence() {
             JTextField textField = new JTextField("Enter PI Digits...");
-            JLabel label = new JLabel("0%");
+            JLabel label = new JLabel("100%");
             textField.setPreferredSize(new Dimension(250, 40));
             
             textField.addActionListener(e -> {
@@ -426,7 +426,7 @@ public class SillyGuitar {
             String truePi = pi.substring(0, inputLength);
 
             if (truePi.equals(input)) {
-                int volume = pi.length() - inputLength;
+                int volume = inputLength;
                 soundEngine.volume = volume;
                 soundEngine.updateVolume();
                 return volume;
