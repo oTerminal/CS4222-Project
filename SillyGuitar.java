@@ -81,7 +81,6 @@ public class SillyGuitar {
             add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
             rightPanel.add(piSequence);
-            //rightPanel.add(piSequence);
 
             JPanel eastWrapper = new JPanel(new BorderLayout());
             eastWrapper.add(rightPanel, BorderLayout.NORTH);
@@ -94,7 +93,6 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        SoundEngine soundEngine;
         double[]frequencies = {82.0, 110.0, 147.0, 196.0, 247.0, 330.0};
         //AI - Start
         private final int[] yPositions = {50, 100, 150, 200, 250, 300};
@@ -514,7 +512,7 @@ public class SillyGuitar {
                 return volume;
             }
             else{
-                int volume = 100;
+                int volume = 0;
                 soundEngine.volume = volume;
                 soundEngine.updateVolume();
                 return 100;
