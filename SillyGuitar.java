@@ -128,6 +128,7 @@ public class SillyGuitar {
 
         GuitarScreen() {
             setLayout(new BorderLayout());
+            setBackground(new Color(101, 67, 33));
             popupManager = new PopupManager();
             stringPanel = new StringPanel();
             piSequence = new PiSequence();
@@ -135,9 +136,11 @@ public class SillyGuitar {
             add(stringPanel);
             add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
+            rightPanel.setBackground(new Color(101, 67, 33));
             rightPanel.add(piSequence);
 
             JPanel eastWrapper = new JPanel(new BorderLayout());
+            eastWrapper.setBackground(new Color(101, 67, 33));
             eastWrapper.add(rightPanel, BorderLayout.NORTH);
             add(eastWrapper, BorderLayout.EAST);
             add(stringPanel, BorderLayout.CENTER);
@@ -165,6 +168,7 @@ public class SillyGuitar {
         public StringPanel() {
             popupManager = new PopupManager();
             setPreferredSize(new Dimension(800, 400));
+            setBackground(new Color(101, 67, 33));
 
             ghostTimer = new javax.swing.Timer(1000 + random.nextInt(1000), null);
             ghostTimer.addActionListener(e -> {
@@ -354,14 +358,14 @@ public class SillyGuitar {
 
             Graphics2D g2d = (Graphics2D) g; // Not AI
 
-            g2d.setColor(Color.RED);
+            g2d.setColor(new Color(218, 165, 32));
             g2d.setStroke(new BasicStroke(3)); // Not AI
 
             for (int y : yPositions) {
                 g2d.drawLine(50, y, 750, y);
             }
 
-            g2d.setColor(Color.GRAY);
+            g2d.setColor(new Color(192, 192, 192));
             for (int x : frets) {
                 g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
             }
@@ -371,7 +375,7 @@ public class SillyGuitar {
                 g2d.drawLine(50, ghostY, 750, ghostY);
             }
 
-            g2d.setColor(Color.BLACK); // or whatever contrasts with your background
+            g2d.setColor(Color.WHITE);
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
             for (int i = 0; i < yPositions.length; i++) {
                 g2d.drawString(TuningPanel.STRING_NAMES[random.nextInt(TuningPanel.STRING_NAMES.length)], 10, yPositions[i] + 5); // +5 to vertically centre with the line
@@ -392,11 +396,14 @@ public class SillyGuitar {
         TuningPanel(StringPanel stringPanel) {
             this.stringPanel = stringPanel;
             setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
+            setBackground(new Color(101, 67, 33));
             setBorder(BorderFactory.createTitledBorder("Tuning"));
 
             // Tuning pegs: one label + text field per string (text fields do nothing)
             for (int i = 0; i < 6; i++) {
-                add(new JLabel(STRING_NAMES[i] + ":"));
+                JLabel lbl = new JLabel(STRING_NAMES[i] + ":");
+                lbl.setForeground(Color.WHITE);
+                add(lbl);
                 JTextField field = new JTextField(5);
                 field.setText(String.format("%.1f", stringPanel.frequencies[i]));
                 tuningFields[i] = field;
@@ -574,6 +581,7 @@ public class SillyGuitar {
 
     public static class PiSequence extends JPanel {
         PiSequence() {
+            setBackground(new Color(101, 67, 33));
             JTextField textField = new JTextField("Enter PI Digits...");
             JLabel label = new JLabel("100%");
             textField.setPreferredSize(new Dimension(250, 40));
