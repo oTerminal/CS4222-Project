@@ -525,7 +525,7 @@ public class SillyGuitar {
                 int volume = 0;
                 soundEngine.volume = volume;
                 soundEngine.updateVolume();
-                return 100;
+                return volume;
             }
         }
     }
