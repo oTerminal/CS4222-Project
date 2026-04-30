@@ -51,19 +51,74 @@ public class SillyGuitar {
 
     }
 
-    // This is the simply the class for the splash screen.
+    // Splash screen.
     public static class SplashScreen extends JPanel {
         ScreenManager screenManager;
 
         SplashScreen(ScreenManager screenManager) {
-            this.screenManager = screenManager;
+        this.screenManager = screenManager;
+        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBackground(Color.WHITE);
 
-            JButton continueBtn = new JButton("Continue");
-            // Listeners learnt in lecture
-            continueBtn.addActionListener(e -> screenManager.switchTo(GameState.INSTRUMENT));
-            add(continueBtn);
+        // Fonts & colors
+        Font titleFont = new Font("SF Pro Display", Font.BOLD, 36);
+        Font bodyFont = new Font("SF Pro Text", Font.PLAIN, 17);
+        Color bodyColor = new Color(99, 99, 102);
+
+        // Title
+        JLabel title = new JLabel("Welcome to Silly Guitar!");
+        title.setFont(titleFont);
+        title.setForeground(new Color(29, 29, 31));
+
+        // Instructions
+        String[] instructions = {
+            "• Press keys 1-6 to play strings",
+            "• Reduce the volume by 1% by entering the digits of π (3.14159…)",
+            "• Change tuning at the bottom"
+        };
+
+        JPanel textBlock = new JPanel();
+        textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
+        textBlock.setAlignmentX(CENTER_ALIGNMENT);
+        textBlock.setBackground(Color.WHITE);
+        textBlock.add(title);
+        textBlock.add(Box.createRigidArea(new Dimension(0, 10)));
+
+        for (String text : instructions) {
+            JLabel label = new JLabel(text);
+            label.setFont(bodyFont);
+            label.setForeground(bodyColor);
+            textBlock.add(label);
         }
+
+        // Warning
+        JLabel warning = new JLabel("Warning: Random fact popups and random notes will play!");
+        warning.setFont(new Font("Arial", Font.BOLD, 14));
+        warning.setForeground(Color.RED);
+        warning.setAlignmentX(CENTER_ALIGNMENT);
+
+        // Continue button
+        JButton continueBtn = new JButton("Continue");
+        continueBtn.setAlignmentX(CENTER_ALIGNMENT);
+        continueBtn.addActionListener(e -> screenManager.switchTo(GameState.INSTRUMENT));
+        continueBtn.setBackground(new Color(0, 122, 255));
+        continueBtn.setForeground(Color.WHITE);
+        continueBtn.setFont(new Font("SF Pro Text", Font.BOLD, 15));
+        continueBtn.setBorderPainted(false);
+        continueBtn.setFocusPainted(false);
+        continueBtn.setOpaque(true);
+        continueBtn.setPreferredSize(new Dimension(160, 44));
+
+        // Layout
+        add(Box.createVerticalGlue());
+        add(textBlock);
+        add(Box.createVerticalGlue());
+        add(warning);
+        add(Box.createRigidArea(new Dimension(0, 20)));
+        add(continueBtn);
+        add(Box.createRigidArea(new Dimension(0, 10)));
     }
+}
 
     // Self explanatory: screen where the guitar can be played.
     public static class GuitarScreen extends JPanel {
@@ -367,8 +422,32 @@ public class SillyGuitar {
                 }
             });
 
+            // Fix tuning button
+           JButton fixBtn = new JButton("Fix Tuning");
+            fixBtn.addMouseMotionListener(new MouseMotionAdapter() {
+                @Override
+                public void mouseMoved(MouseEvent e) {
+                    JRootPane root = SwingUtilities.getRootPane(fixBtn);
+                    if (root == null) return;
+                    JPanel glass = (JPanel) root.getGlassPane();
+                    glass.setLayout(null);
+                    glass.setVisible(true);
+
+                    if (fixBtn.getParent() != glass) {
+                        fixBtn.getParent().remove(fixBtn);
+                        glass.add(fixBtn);
+                    }
+
+                    Random r = new Random();
+                    int newX = r.nextInt(Math.max(1, root.getWidth() - fixBtn.getWidth()));
+                    int newY = r.nextInt(Math.max(1, root.getHeight() - fixBtn.getHeight()));
+                    fixBtn.setBounds(newX, newY, fixBtn.getPreferredSize().width, fixBtn.getPreferredSize().height);
+                }
+            });
+
             add(randomBtn);
             add(resetBtn);
+            add(fixBtn);
         }
 
     }
