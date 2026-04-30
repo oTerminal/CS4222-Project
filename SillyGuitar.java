@@ -22,8 +22,9 @@ public class SillyGuitar {
         CUSTOM,
 
     }
-    
+
     public static SoundEngine soundEngine = new SoundEngine();
+
     // This class will control what screen to change to and what is currently
     // showing.
     public static class ScreenManager extends JPanel {
@@ -70,7 +71,6 @@ public class SillyGuitar {
         StringPanel stringPanel;
         PiSequence piSequence;
 
-
         GuitarScreen() {
             setLayout(new BorderLayout());
             popupManager = new PopupManager();
@@ -113,26 +113,28 @@ public class SillyGuitar {
 
             ghostTimer = new javax.swing.Timer(1000 + random.nextInt(1000), null);
             ghostTimer.addActionListener(e -> {
-            if (!ghostVisible) {
-            int gap = random.nextInt(yPositions.length -1); 
-            ghostY = (yPositions[gap] + yPositions[gap + 1]) / 2; 
-            ghostFrequency = 80 + random.nextInt(500);
-            ghostVisible = true;
-            repaint();
-            new Thread(() -> {
-                try {
-                    Thread.sleep(NOTE_DELAY_MS);
-                    SillyGuitar.soundEngine.playNote(ghostFrequency);
-                } catch (Exception ex) { ex.printStackTrace(); }
-            }).start();
-            javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
-            ghostVisible = false;
-            repaint();
-            });
-            hideTimer.setRepeats(false);
-            hideTimer.start();
-            }
-            ghostTimer.setDelay(random.nextInt(750));
+                if (!ghostVisible) {
+                    int gap = random.nextInt(yPositions.length - 1);
+                    ghostY = (yPositions[gap] + yPositions[gap + 1]) / 2;
+                    ghostFrequency = 80 + random.nextInt(500);
+                    ghostVisible = true;
+                    repaint();
+                    new Thread(() -> {
+                        try {
+                            Thread.sleep(NOTE_DELAY_MS);
+                            SillyGuitar.soundEngine.playNote(ghostFrequency);
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                    }).start();
+                    javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
+                        ghostVisible = false;
+                        repaint();
+                    });
+                    hideTimer.setRepeats(false);
+                    hideTimer.start();
+                }
+                ghostTimer.setDelay(random.nextInt(750));
             });
             ghostTimer.start();
 
@@ -140,7 +142,8 @@ public class SillyGuitar {
                 @Override
                 public void mouseReleased(MouseEvent e) {
                     for (int i = 0; i < yPositions.length; i++) {
-                        final int idx = i;   // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS LINE
+                        final int idx = i; // ✅ Make a final copy for the thread/lambda // HAD TO GIVE ERROR FOR THIS
+                                           // LINE
                         if (Math.abs(e.getY() - yPositions[i]) < 10) {
                             // Detect fret clicked (if any)
                             int fretIndex = -1;
@@ -290,7 +293,6 @@ public class SillyGuitar {
             actionMap.put("GMajorAction", GMajorAction);
         }
 
-
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
@@ -309,10 +311,17 @@ public class SillyGuitar {
                 g2d.drawLine(x, yPositions[0] - 20, x, yPositions[yPositions.length - 1] + 20);
             }
             if (ghostVisible) {
-                g2d.setColor(Color.RED); 
+                g2d.setColor(Color.RED);
                 g2d.setStroke(new BasicStroke(3));
                 g2d.drawLine(50, ghostY, 750, ghostY);
             }
+
+            g2d.setColor(Color.BLACK); // or whatever contrasts with your background
+            g2d.setFont(new Font("Arial", Font.BOLD, 12));
+            for (int i = 0; i < yPositions.length; i++) {
+                g2d.drawString(TuningPanel.STRING_NAMES[random.nextInt(TuningPanel.STRING_NAMES.length)], 10, yPositions[i] + 5); // +5 to vertically centre with the line
+            }
+
         }
 
     } // AI - Finish
@@ -322,8 +331,8 @@ public class SillyGuitar {
         private final JTextField[] tuningFields = new JTextField[6];
 
         // The intentionally wrong tuning the Reset button returns to
-        private static final double[] ORIGINAL_WRONG_TUNING = {100.0, 140.0, 190.0, 240.0, 320.0, 430.0};
-        private static final String[] STRING_NAMES = {"E2", "B2", "G3", "D3", "A4", "e4"};
+        private static final double[] ORIGINAL_WRONG_TUNING = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
+        static final String[] STRING_NAMES = { "E2", "B2", "G3", "D3", "A4", "e4" };
 
         TuningPanel(StringPanel stringPanel) {
             this.stringPanel = stringPanel;
@@ -388,8 +397,8 @@ public class SillyGuitar {
                 line = AudioSystem.getSourceDataLine(format);
                 line.open(format, BUFFER_SIZE * 2);
                 line.start();
-                
-                vol = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);//using AI
+
+                vol = (FloatControl) line.getControl(FloatControl.Type.MASTER_GAIN);// using AI
                 updateVolume();
 
                 Thread audioThread = new Thread(this::audioLoop);
@@ -400,12 +409,12 @@ public class SillyGuitar {
                 e.printStackTrace();
             }
         }
-        
+
         public void updateVolume() {
-                float min = vol.getMinimum();// -80.0 dB
-                float max = vol.getMaximum();// 6.0206 dB
-                float gain = min + (volume / 100.0f) * (max - min);
-                vol.setValue(gain);
+            float min = vol.getMinimum();// -80.0 dB
+            float max = vol.getMaximum();// 6.0206 dB
+            float gain = min + (volume / 100.0f) * (max - min);
+            vol.setValue(gain);
         }
 
         /** Main audio loop */
@@ -480,22 +489,23 @@ public class SillyGuitar {
     }
 
     public static class customCursor {
-        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(), new Point (0, 0), "Custom cursor");
+        Cursor cursor = Toolkit.getDefaultToolkit().createCustomCursor(new ImageIcon("guitarPick.png").getImage(),
+                new Point(0, 0), "Custom cursor");
     }
 
-     public static class PiSequence extends JPanel {
+    public static class PiSequence extends JPanel {
         PiSequence() {
             JTextField textField = new JTextField("Enter PI Digits...");
             JLabel label = new JLabel("100%");
             textField.setPreferredSize(new Dimension(250, 40));
-            
+
             textField.addActionListener(e -> {
-                String input = textField.getText();//using AI
+                String input = textField.getText();// using AI
                 label.setText((100 - volumeCalc(input)) + "%");
                 textField.setText("Enter PI Digits...");
-                textField.transferFocus();//using AI
+                textField.transferFocus();// using AI
             });
-            
+
             add(textField);
             add(label);
         }
@@ -544,9 +554,9 @@ public class SillyGuitar {
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-        //customCursor cur = new customCursor();
-        
-        //frame.setCursor(cur.cursor);
+        // customCursor cur = new customCursor();
+
+        // frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
