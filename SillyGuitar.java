@@ -56,69 +56,69 @@ public class SillyGuitar {
         ScreenManager screenManager;
 
         SplashScreen(ScreenManager screenManager) {
-        this.screenManager = screenManager;
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-        setBackground(Color.WHITE);
+            this.screenManager = screenManager;
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBackground(Color.WHITE);
 
-        // Fonts & colors
-        Font titleFont = new Font("SF Pro Display", Font.BOLD, 36);
-        Font bodyFont = new Font("SF Pro Text", Font.PLAIN, 17);
-        Color bodyColor = new Color(99, 99, 102);
+            // Fonts & colors
+            Font titleFont = new Font("SF Pro Display", Font.BOLD, 36);
+            Font bodyFont = new Font("SF Pro Text", Font.PLAIN, 17);
+            Color bodyColor = new Color(99, 99, 102);
 
-        // Title
-        JLabel title = new JLabel("Welcome to Silly Guitar!");
-        title.setFont(titleFont);
-        title.setForeground(new Color(29, 29, 31));
+            // Title
+            JLabel title = new JLabel("Welcome to Silly Guitar!");
+            title.setFont(titleFont);
+            title.setForeground(new Color(29, 29, 31));
 
-        // Instructions
-        String[] instructions = {
-            "• Press keys 1-6 to play strings",
-            "• Reduce the volume by 1% by entering the digits of π (3.14159…)",
-            "• Change tuning at the bottom"
-        };
+            // Instructions
+            String[] instructions = {
+                    "• Press keys 1-6 to play strings",
+                    "• Reduce the volume by 1% by entering the digits of π (3.14159…)",
+                    "• Change tuning at the bottom"
+            };
 
-        JPanel textBlock = new JPanel();
-        textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
-        textBlock.setAlignmentX(CENTER_ALIGNMENT);
-        textBlock.setBackground(Color.WHITE);
-        textBlock.add(title);
-        textBlock.add(Box.createRigidArea(new Dimension(0, 10)));
+            JPanel textBlock = new JPanel();
+            textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
+            textBlock.setAlignmentX(CENTER_ALIGNMENT);
+            textBlock.setBackground(Color.WHITE);
+            textBlock.add(title);
+            textBlock.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        for (String text : instructions) {
-            JLabel label = new JLabel(text);
-            label.setFont(bodyFont);
-            label.setForeground(bodyColor);
-            textBlock.add(label);
+            for (String text : instructions) {
+                JLabel label = new JLabel(text);
+                label.setFont(bodyFont);
+                label.setForeground(bodyColor);
+                textBlock.add(label);
+            }
+
+            // Warning
+            JLabel warning = new JLabel("Warning: Random fact popups and random notes will play!");
+            warning.setFont(new Font("Arial", Font.BOLD, 14));
+            warning.setForeground(Color.RED);
+            warning.setAlignmentX(CENTER_ALIGNMENT);
+
+            // Continue button
+            JButton continueBtn = new JButton("Continue");
+            continueBtn.setAlignmentX(CENTER_ALIGNMENT);
+            continueBtn.addActionListener(e -> screenManager.switchTo(GameState.INSTRUMENT));
+            continueBtn.setBackground(new Color(0, 122, 255));
+            continueBtn.setForeground(Color.WHITE);
+            continueBtn.setFont(new Font("SF Pro Text", Font.BOLD, 15));
+            continueBtn.setBorderPainted(false);
+            continueBtn.setFocusPainted(false);
+            continueBtn.setOpaque(true);
+            continueBtn.setPreferredSize(new Dimension(160, 44));
+
+            // Layout
+            add(Box.createVerticalGlue());
+            add(textBlock);
+            add(Box.createVerticalGlue());
+            add(warning);
+            add(Box.createRigidArea(new Dimension(0, 20)));
+            add(continueBtn);
+            add(Box.createRigidArea(new Dimension(0, 10)));
         }
-
-        // Warning
-        JLabel warning = new JLabel("Warning: Random fact popups and random notes will play!");
-        warning.setFont(new Font("Arial", Font.BOLD, 14));
-        warning.setForeground(Color.RED);
-        warning.setAlignmentX(CENTER_ALIGNMENT);
-
-        // Continue button
-        JButton continueBtn = new JButton("Continue");
-        continueBtn.setAlignmentX(CENTER_ALIGNMENT);
-        continueBtn.addActionListener(e -> screenManager.switchTo(GameState.INSTRUMENT));
-        continueBtn.setBackground(new Color(0, 122, 255));
-        continueBtn.setForeground(Color.WHITE);
-        continueBtn.setFont(new Font("SF Pro Text", Font.BOLD, 15));
-        continueBtn.setBorderPainted(false);
-        continueBtn.setFocusPainted(false);
-        continueBtn.setOpaque(true);
-        continueBtn.setPreferredSize(new Dimension(160, 44));
-
-        // Layout
-        add(Box.createVerticalGlue());
-        add(textBlock);
-        add(Box.createVerticalGlue());
-        add(warning);
-        add(Box.createRigidArea(new Dimension(0, 20)));
-        add(continueBtn);
-        add(Box.createRigidArea(new Dimension(0, 10)));
     }
-}
 
     // Self explanatory: screen where the guitar can be played.
     public static class GuitarScreen extends JPanel {
@@ -148,30 +148,38 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        double[]frequencies = {82.0, 110.0, 147.0, 196.0, 247.0, 330.0};
-        //AI - Start
-        private final int[] yPositions = {50, 100, 150, 200, 250, 300};
-        private final double[] gMajorFreq = {196.00, 246.94, 392.00, 493.88, 587.33, 783.99};
-        private final int[] frets = {150, 250, 350, 450, 550, 650, 750};
-        
+        double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
+        // AI - Start
+        private final int[] yPositions = { 50, 100, 150, 200, 250, 300 };
+        // Open chord voicings (standard tuning: E2, A2, D3, G3, B3, E4)
+        private final double[] gMajorFreq = { 98.0, 123.47, 146.83, 196.0, 246.94, 392.0 };
+        private final double[] cMajorFreq = { 130.81, 164.81, 196.0, 261.63, 329.63 };
+        private final double[] dMajorFreq = { 146.83, 220.0, 293.66, 369.99 };
+        private final double[] aMajorFreq = { 110.0, 164.81, 220.0, 277.18, 329.63 };
+        private final double[] eMajorFreq = { 82.41, 123.47, 164.81, 207.65, 246.94, 329.63 };
+        private final double[] aMinorFreq = { 110.0, 164.81, 196.0, 261.63, 329.63 };
+        private final int[] frets = { 150, 250, 350, 450, 550, 650, 750 };
+
         PopupManager popupManager;
         Random random = new Random();
         private boolean ghostVisible = false;
         private int ghostY = 350;
-        private double ghostFrequency = 300;
+        private double ghostFrequency;
         private javax.swing.Timer ghostTimer;
-        private static final int NOTE_DELAY_MS = 150;
+        private static int NOTE_DELAY_MS = 0;
 
         public StringPanel() {
             popupManager = new PopupManager();
+            NOTE_DELAY_MS = random.nextInt(200, 600);
             setPreferredSize(new Dimension(800, 400));
 
-            ghostTimer = new javax.swing.Timer(1000 + random.nextInt(1000), null);
+            // Start with a shorter base delay so the ghost appears more often
+            ghostTimer = new javax.swing.Timer(300 + random.nextInt(700), null);
             ghostTimer.addActionListener(e -> {
                 if (!ghostVisible) {
                     int gap = random.nextInt(yPositions.length - 1);
                     ghostY = (yPositions[gap] + yPositions[gap + 1]) / 2;
-                    ghostFrequency = 80 + random.nextInt(500);
+                    ghostFrequency = random.nextInt(100, 500);
                     ghostVisible = true;
                     repaint();
                     new Thread(() -> {
@@ -182,14 +190,16 @@ public class SillyGuitar {
                             ex.printStackTrace();
                         }
                     }).start();
-                    javax.swing.Timer hideTimer = new javax.swing.Timer(2000, ev -> {
+                    // Keep the ghost visible for a shorter time so it can reappear sooner
+                    javax.swing.Timer hideTimer = new javax.swing.Timer(800, ev -> {
                         ghostVisible = false;
                         repaint();
                     });
                     hideTimer.setRepeats(false);
                     hideTimer.start();
                 }
-                ghostTimer.setDelay(random.nextInt(750));
+                // Use a small-but-not-zero random delay between appearances
+                ghostTimer.setDelay(200 + random.nextInt(400));
             });
             ghostTimer.start();
 
@@ -331,13 +341,73 @@ public class SillyGuitar {
                 }
             };
 
-            inputMap.put(KeyStroke.getKeyStroke("1"), "EAction");
-            inputMap.put(KeyStroke.getKeyStroke("2"), "BAction");
-            inputMap.put(KeyStroke.getKeyStroke("3"), "GAction");
-            inputMap.put(KeyStroke.getKeyStroke("4"), "DAction");
-            inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
-            inputMap.put(KeyStroke.getKeyStroke("6"), "eAction");
+            Action CMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[4]);
+                }
+            };
+
+            Action DMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[3]);
+                }
+            };
+
+            Action AMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[4]);
+                }
+            };
+
+            Action EMajorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[4]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[5]);
+                }
+            };
+
+            Action AMinorAction = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[0]);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[1]);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[2]);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[4]);
+                }
+            };
+
+            inputMap.put(KeyStroke.getKeyStroke("2"), "EAction");
+            inputMap.put(KeyStroke.getKeyStroke("4"), "BAction");
+            inputMap.put(KeyStroke.getKeyStroke("6"), "GAction");
+            inputMap.put(KeyStroke.getKeyStroke("3"), "DAction");
+            inputMap.put(KeyStroke.getKeyStroke("2"), "AAction");
+            inputMap.put(KeyStroke.getKeyStroke("1"), "eAction");
             inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
+            inputMap.put(KeyStroke.getKeyStroke("C"), "CMajorAction");
+            inputMap.put(KeyStroke.getKeyStroke("D"), "DMajorAction");
+            inputMap.put(KeyStroke.getKeyStroke("A"), "AMajorAction");
+            inputMap.put(KeyStroke.getKeyStroke("E"), "EMajorAction");
+            inputMap.put(KeyStroke.getKeyStroke("M"), "AMinorAction");
 
             actionMap.put("EAction", EAction);
             actionMap.put("BAction", BAction);
@@ -346,6 +416,11 @@ public class SillyGuitar {
             actionMap.put("AAction", AAction);
             actionMap.put("eAction", eAction);
             actionMap.put("GMajorAction", GMajorAction);
+            actionMap.put("CMajorAction", CMajorAction);
+            actionMap.put("DMajorAction", DMajorAction);
+            actionMap.put("AMajorAction", AMajorAction);
+            actionMap.put("EMajorAction", EMajorAction);
+            actionMap.put("AMinorAction", AMinorAction);
         }
 
         @Override
@@ -374,7 +449,8 @@ public class SillyGuitar {
             g2d.setColor(Color.BLACK); // or whatever contrasts with your background
             g2d.setFont(new Font("Arial", Font.BOLD, 12));
             for (int i = 0; i < yPositions.length; i++) {
-                g2d.drawString(TuningPanel.STRING_NAMES[random.nextInt(TuningPanel.STRING_NAMES.length)], 10, yPositions[i] + 5); // +5 to vertically centre with the line
+                g2d.drawString(TuningPanel.STRING_NUMS[random.nextInt(TuningPanel.STRING_NAMES.length)], 10,
+                        yPositions[i] + 5); // +5 to vertically centre with the line
             }
 
         }
@@ -388,6 +464,7 @@ public class SillyGuitar {
         // The intentionally wrong tuning the Reset button returns to
         private static final double[] ORIGINAL_WRONG_TUNING = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
         static final String[] STRING_NAMES = { "E2", "B2", "G3", "D3", "A4", "e4" };
+        static final String[] STRING_NUMS = {"1", "2", "3", "4", "5", "6"};
 
         TuningPanel(StringPanel stringPanel) {
             this.stringPanel = stringPanel;
@@ -423,12 +500,13 @@ public class SillyGuitar {
             });
 
             // Fix tuning button
-           JButton fixBtn = new JButton("Fix Tuning");
+            JButton fixBtn = new JButton("Fix Tuning");
             fixBtn.addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
                     JRootPane root = SwingUtilities.getRootPane(fixBtn);
-                    if (root == null) return;
+                    if (root == null)
+                        return;
                     JPanel glass = (JPanel) root.getGlassPane();
                     glass.setLayout(null);
                     glass.setVisible(true);
@@ -466,11 +544,14 @@ public class SillyGuitar {
         private volatile boolean running = true;
         FloatControl vol;
         float volume = 0;
+        PopupManager popupManager;
 
         // Active plucked strings
         private final java.util.List<KarplusString> strings = new java.util.concurrent.CopyOnWriteArrayList<>();
 
         public SoundEngine() {
+            popupManager = new PopupManager();
+
             try {
                 AudioFormat format = new AudioFormat(SAMPLE_RATE, 16, 1, true, true);
                 line = AudioSystem.getSourceDataLine(format);
@@ -526,9 +607,9 @@ public class SillyGuitar {
 
         /** Public API: pluck a string */
         public void playNote(double frequency) {
-            // limit polyphony (like a real guitar)
-            if (strings.size() < 8) {
+            if (strings.size() < 50) {
                 strings.add(new KarplusString(frequency));
+                popupManager.triggerRandomPopup();
             }
         }
 
@@ -599,8 +680,7 @@ public class SillyGuitar {
                 soundEngine.volume = volume;
                 soundEngine.updateVolume();
                 return volume;
-            }
-            else{
+            } else {
                 int volume = 0;
                 soundEngine.volume = volume;
                 soundEngine.updateVolume();
