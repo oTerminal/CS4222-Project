@@ -151,7 +151,8 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
+        //double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
+        double[] frequencies = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
         // AI - Start
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300 };
         // Open chord voicings (standard tuning: E2, A2, D3, G3, B3, E4)
@@ -462,7 +463,6 @@ public class SillyGuitar {
     } // AI - Finish
 
     public static class TuningPanel extends JPanel {
-        private final StringPanel stringPanel;
         private final JTextField[] tuningFields = new JTextField[6];
 
         // The intentionally wrong tuning the Reset button returns to
@@ -471,7 +471,6 @@ public class SillyGuitar {
         static final String[] STRING_NUMS = {"1", "2", "3", "4", "5", "6"};
 
         TuningPanel(StringPanel stringPanel) {
-            this.stringPanel = stringPanel;
             setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
             setBackground(new Color(101, 67, 33));
             setBorder(BorderFactory.createTitledBorder("Tuning"));
@@ -616,8 +615,8 @@ public class SillyGuitar {
         public void playNote(double frequency) {
             if (strings.size() < 50) {
                 strings.add(new KarplusString(frequency));
-                popupManager.triggerRandomPopup();
             }
+            popupManager.triggerRandomPopup();
         }
 
         /** One Karplus–Strong string */
