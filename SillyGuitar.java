@@ -731,14 +731,17 @@ public class SillyGuitar {
             random = new Random();
             funFacts = new String[] {
                     "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
-                    "gurt",
-                    "hi" };
+                    "You can't hum while holding your nose closed!!!",
+                    "The first 10 digits of π are 3.1415926535" };
         }
 
         void triggerRandomPopup() {
             if (Math.random() > 0.7) {
                 int index = random.nextInt(funFacts.length);
                 JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+                if(index == 1){
+                    JOptionPane.showMessageDialog(null, "Did you just try doing it?", "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
