@@ -64,8 +64,8 @@ public class SillyGuitar {
             setBackground(Color.WHITE);
 
             // Fonts & colors
-            Font titleFont = new Font("SF Pro Display", Font.BOLD, 36);
-            Font bodyFont = new Font("SF Pro Text", Font.PLAIN, 17);
+            Font titleFont = new Font("Arial", Font.BOLD, 36);
+            Font bodyFont = new Font("Arial", Font.PLAIN, 17);
             Color bodyColor = new Color(99, 99, 102);
 
             // Title
@@ -76,7 +76,8 @@ public class SillyGuitar {
             // Instructions
             String[] instructions = {
                     "• Press keys 1-6 to play strings",
-                    "• Reduce the volume by 1% by entering the digits of π (3.14159…)",
+                    "• Press G for G Major, C for C Major, D for D Major, A for A Major, E for E Major and M for A Minor",
+                    "• Reduce or increase? the volume by 1% by entering the digits of π (3.14159…)",
                     "• Change tuning at the bottom"
             };
 
@@ -106,7 +107,7 @@ public class SillyGuitar {
             continueBtn.addActionListener(e -> screenManager.switchTo(GameState.INSTRUMENT));
             continueBtn.setBackground(new Color(0, 122, 255));
             continueBtn.setForeground(Color.WHITE);
-            continueBtn.setFont(new Font("SF Pro Text", Font.BOLD, 15));
+            continueBtn.setFont(new Font("Arial", Font.BOLD, 15));
             continueBtn.setBorderPainted(false);
             continueBtn.setFocusPainted(false);
             continueBtn.setOpaque(true);
@@ -154,7 +155,6 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        // double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
         double[] frequencies = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
         // AI - Start
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300 };
@@ -182,7 +182,7 @@ public class SillyGuitar {
             setBackground(new Color(101, 67, 33));
 
             // Start with a shorter base delay so the ghost appears more often
-            ghostTimer = new javax.swing.Timer(300 + random.nextInt(700), null);
+            ghostTimer = new javax.swing.Timer(1000 + random.nextInt(700), null);
             ghostTimer.addActionListener(e -> {
                 if (!ghostVisible) {
                     int gap = random.nextInt(yPositions.length - 1);
@@ -193,7 +193,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(ghostFrequency);
+                            SillyGuitar.soundEngine.playNote(ghostFrequency, false);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -207,7 +207,7 @@ public class SillyGuitar {
                     hideTimer.start();
                 }
                 // Use a small-but-not-zero random delay between appearances
-                ghostTimer.setDelay(200 + random.nextInt(400));
+                ghostTimer.setDelay(1000 + random.nextInt(400));
             });
             ghostTimer.start();
 
@@ -240,7 +240,7 @@ public class SillyGuitar {
                             new Thread(() -> {
                                 try {
                                     Thread.sleep(NOTE_DELAY_MS);
-                                    SillyGuitar.soundEngine.playNote(noteFreq);
+                                    SillyGuitar.soundEngine.playNote(noteFreq, true);
                                 } catch (Exception ex) {
                                     ex.printStackTrace();
                                 }
@@ -260,7 +260,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[0]);
+                            SillyGuitar.soundEngine.playNote(frequencies[0], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -274,7 +274,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[1]);
+                            SillyGuitar.soundEngine.playNote(frequencies[1], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -288,7 +288,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[2]);
+                            SillyGuitar.soundEngine.playNote(frequencies[2], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -302,7 +302,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[3]);
+                            SillyGuitar.soundEngine.playNote(frequencies[3], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -316,7 +316,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[4]);
+                            SillyGuitar.soundEngine.playNote(frequencies[4], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -330,7 +330,7 @@ public class SillyGuitar {
                     new Thread(() -> {
                         try {
                             Thread.sleep(NOTE_DELAY_MS);
-                            SillyGuitar.soundEngine.playNote(frequencies[5]);
+                            SillyGuitar.soundEngine.playNote(frequencies[5], true);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -341,67 +341,73 @@ public class SillyGuitar {
             Action GMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[3]);
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[4]);
-                    SillyGuitar.soundEngine.playNote(gMajorFreq[5]);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[3], false);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[4], false);
+                    SillyGuitar.soundEngine.playNote(gMajorFreq[5], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
             Action CMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(cMajorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(cMajorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(cMajorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(cMajorFreq[3]);
-                    SillyGuitar.soundEngine.playNote(cMajorFreq[4]);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[3], false);
+                    SillyGuitar.soundEngine.playNote(cMajorFreq[4], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
             Action DMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(dMajorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(dMajorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(dMajorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(dMajorFreq[3]);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(dMajorFreq[3], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
             Action AMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(aMajorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(aMajorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(aMajorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(aMajorFreq[3]);
-                    SillyGuitar.soundEngine.playNote(aMajorFreq[4]);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[3], false);
+                    SillyGuitar.soundEngine.playNote(aMajorFreq[4], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
             Action EMajorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[3]);
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[4]);
-                    SillyGuitar.soundEngine.playNote(eMajorFreq[5]);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[3], false);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[4], false);
+                    SillyGuitar.soundEngine.playNote(eMajorFreq[5], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
             Action AMinorAction = new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    SillyGuitar.soundEngine.playNote(aMinorFreq[0]);
-                    SillyGuitar.soundEngine.playNote(aMinorFreq[1]);
-                    SillyGuitar.soundEngine.playNote(aMinorFreq[2]);
-                    SillyGuitar.soundEngine.playNote(aMinorFreq[3]);
-                    SillyGuitar.soundEngine.playNote(aMinorFreq[4]);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[0], false);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[1], false);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[2], false);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[3], false);
+                    SillyGuitar.soundEngine.playNote(aMinorFreq[4], false);
+                    popupManager.triggerRandomPopup();
                 }
             };
 
@@ -618,11 +624,14 @@ public class SillyGuitar {
         }
 
         /** Public API: pluck a string */
-        public void playNote(double frequency) {
+        public void playNote(double frequency, boolean triggerPopup) {
             if (strings.size() < 50) {
                 strings.add(new KarplusString(frequency));
             }
-            popupManager.triggerRandomPopup();
+            if(triggerPopup)
+            {
+                popupManager.triggerRandomPopup();
+            }
         }
 
         public void playHoverSound() {
@@ -743,7 +752,7 @@ public class SillyGuitar {
         }
 
         void triggerRandomPopup() {
-            if (Math.random() > 0.7) {
+            if (Math.random() > 0.5) {
                 int index = random.nextInt(funFacts.length);
                 JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
                 if (index == 1) {
