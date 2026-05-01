@@ -697,7 +697,7 @@ public class SillyGuitar {
                 textField.setText("Enter PI Digits...");
                 textField.transferFocus();// using AI
             });
-            
+
             add(new JLabel("Volume: "));
             add(textField);
             add(label);
@@ -732,15 +732,23 @@ public class SillyGuitar {
             funFacts = new String[] {
                     "Did you know that 1 in 12 men and 1 in 200 women in the world are affected by Color Blindness!!!!!!",
                     "You can't hum while holding your nose closed!!!",
-                    "The first 10 digits of π are 3.1415926535" };
+                    "The first 10 digits of π are 3.1415926535",
+                    "BlueJ is the best IDE ever!!!!",
+                    "Water is wet.",
+                    "Fish live in water.",
+                    "If you don't eat, you will get hungry.",
+                    "This is a fun fact.",
+                    "Chairs are for sitting on.",
+                    "6767676767" };
         }
 
         void triggerRandomPopup() {
             if (Math.random() > 0.7) {
                 int index = random.nextInt(funFacts.length);
                 JOptionPane.showMessageDialog(null, funFacts[index], "Fun Facts!", JOptionPane.ERROR_MESSAGE);
-                if(index == 1){
-                    JOptionPane.showMessageDialog(null, "Did you just try doing it?", "Fun Facts!", JOptionPane.ERROR_MESSAGE);
+                if (index == 1) {
+                    JOptionPane.showMessageDialog(null, "Did you just try doing it?", "Fun Facts!",
+                            JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
