@@ -133,8 +133,8 @@ public class SillyGuitar {
             stringPanel = new StringPanel();
             piSequence = new PiSequence();
 
-            add(stringPanel);
-            add(piSequence);
+            //add(stringPanel);
+            //add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
             rightPanel.setBackground(new Color(101, 67, 33));
             rightPanel.add(piSequence);
@@ -720,9 +720,9 @@ public class SillyGuitar {
     public static void main(String[] args) {
         JFrame frame = new JFrame("SillyGuitar");
         ScreenManager screenManager = new ScreenManager();
-        // customCursor cur = new customCursor();
+        customCursor cur = new customCursor();
 
-        // frame.setCursor(cur.cursor);
+        frame.setCursor(cur.cursor);
         frame.add(screenManager);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
