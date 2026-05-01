@@ -1,8 +1,11 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.Random;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
@@ -133,8 +136,8 @@ public class SillyGuitar {
             stringPanel = new StringPanel();
             piSequence = new PiSequence();
 
-            //add(stringPanel);
-            //add(piSequence);
+            // add(stringPanel);
+            // add(piSequence);
             JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 4));
             rightPanel.setBackground(new Color(101, 67, 33));
             rightPanel.add(piSequence);
@@ -151,7 +154,7 @@ public class SillyGuitar {
     }
 
     public static class StringPanel extends JPanel {
-        //double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
+        // double[] frequencies = { 82.41, 110.0, 146.83, 196.0, 246.94, 329.63 };
         double[] frequencies = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
         // AI - Start
         private final int[] yPositions = { 50, 100, 150, 200, 250, 300 };
@@ -326,6 +329,7 @@ public class SillyGuitar {
                 public void actionPerformed(ActionEvent e) {
                     new Thread(() -> {
                         try {
+                            Thread.sleep(NOTE_DELAY_MS);
                             SillyGuitar.soundEngine.playNote(frequencies[5]);
                         } catch (Exception ex) {
                             ex.printStackTrace();
@@ -405,7 +409,7 @@ public class SillyGuitar {
             inputMap.put(KeyStroke.getKeyStroke("4"), "BAction");
             inputMap.put(KeyStroke.getKeyStroke("6"), "GAction");
             inputMap.put(KeyStroke.getKeyStroke("3"), "DAction");
-            inputMap.put(KeyStroke.getKeyStroke("2"), "AAction");
+            inputMap.put(KeyStroke.getKeyStroke("5"), "AAction");
             inputMap.put(KeyStroke.getKeyStroke("1"), "eAction");
             inputMap.put(KeyStroke.getKeyStroke("G"), "GMajorAction");
             inputMap.put(KeyStroke.getKeyStroke("C"), "CMajorAction");
@@ -468,7 +472,7 @@ public class SillyGuitar {
         // The intentionally wrong tuning the Reset button returns to
         private static final double[] ORIGINAL_WRONG_TUNING = { 100.0, 140.0, 190.0, 240.0, 320.0, 430.0 };
         static final String[] STRING_NAMES = { "E2", "B2", "G3", "D3", "A4", "e4" };
-        static final String[] STRING_NUMS = {"1", "2", "3", "4", "5", "6"};
+        static final String[] STRING_NUMS = { "1", "2", "3", "4", "5", "6" };
 
         TuningPanel(StringPanel stringPanel) {
             setLayout(new FlowLayout(FlowLayout.LEFT, 8, 4));
@@ -507,6 +511,12 @@ public class SillyGuitar {
 
             // Fix tuning button
             JButton fixBtn = new JButton("Fix Tuning");
+            fixBtn.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    SillyGuitar.soundEngine.playHoverSound();
+                }
+            });
             fixBtn.addMouseMotionListener(new MouseMotionAdapter() {
                 @Override
                 public void mouseMoved(MouseEvent e) {
@@ -533,10 +543,6 @@ public class SillyGuitar {
             add(resetBtn);
             add(fixBtn);
         }
-
-    }
-
-    public static class GoofyButton extends JButton {
 
     }
 
@@ -617,6 +623,25 @@ public class SillyGuitar {
                 strings.add(new KarplusString(frequency));
             }
             popupManager.triggerRandomPopup();
+        }
+
+        public void playHoverSound() {
+            try {
+                java.net.URL soundUrl = this.getClass().getResource("goofy_sfx.wav");
+                AudioInputStream audioInputStream;
+
+                if (soundUrl != null) {
+                    audioInputStream = AudioSystem.getAudioInputStream(soundUrl);
+                } else {
+                    audioInputStream = AudioSystem.getAudioInputStream(new File("goofy_sfx.wav"));
+                }
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(audioInputStream);
+                clip.start();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
 
         /** One Karplus–Strong string */
