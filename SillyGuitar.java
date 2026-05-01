@@ -3,8 +3,8 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Random;
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
@@ -697,7 +697,8 @@ public class SillyGuitar {
                 textField.setText("Enter PI Digits...");
                 textField.transferFocus();// using AI
             });
-
+            
+            add(new JLabel("Volume: "));
             add(textField);
             add(label);
         }
